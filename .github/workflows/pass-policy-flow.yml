@@ -95,7 +95,7 @@ jobs:
 
           # Import custom modules
           Import-Module .\EZD.ECI.Common\EZD.ECI.Common\EZD.ECI.Common.psm1 -Force
-          Import-Module .\EZD.ECI.EntraUserPasswordExpiration\EZD.ECI.PassPolicy\EZD.ECIEntraIdUserPasswordPolicyConfig.psm1 -Force
+          Import-Module .\EZD.ECI.EntraUserPasswordExpiration\EZD.ECI.PassPolicy\EZD.ECI.EntraIdUserPasswordPolicyConfig.psm1 -Force
 
           # Define variables
           $PasswordPolicy = "${{ github.event.inputs.password_policy }}"
