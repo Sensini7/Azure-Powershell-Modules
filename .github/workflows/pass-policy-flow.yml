@@ -71,7 +71,7 @@ jobs:
           } else {
             $GRAPH_ENVIRONMENT = 'Global'
           }
-          az login --service-principal -u ${{ vars.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ vars.AZURE_TENANT_ID }}
+          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
           $AccessToken = (az account get-access-token --resource-type ms-graph | ConvertFrom-Json).accessToken
           
           Write-Output "Connecting to MgGraph..."
