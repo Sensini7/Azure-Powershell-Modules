@@ -48,7 +48,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'Sensini7/Azure-User-Password-Policy'
-          ref: '1.0'
+          ref: 'main'
           path: 'EZD.ECI.EntraUserPasswordExpiration'
           sparse-checkout: 'EZD.ECI.PassPolicy'
           ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
