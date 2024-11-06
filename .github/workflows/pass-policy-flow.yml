@@ -41,6 +41,8 @@ jobs:
     environment: ${{ inputs.environment }}
     name: "Password Expiration Policy"
     runs-on: ubuntu-latest
+    outputs: 
+      driftResult: ${{steps.ps-drift.outputs.drift_detection_result}}
 
     steps:
       # Checkout the repository to the GitHub Actions runner
