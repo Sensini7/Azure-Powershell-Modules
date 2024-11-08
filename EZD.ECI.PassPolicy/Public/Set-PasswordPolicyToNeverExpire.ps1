@@ -19,16 +19,7 @@ function Set-PasswordPolicy {
         Write-Host "Current: Deployment Run"
     }
 
-    # Azure environment setup
-    # Note: These IDs are placeholders and typically used for identifying specific applications
-    if ($IsAzureGov) {
-        $AzurePortalAppId = "c836cbdb-7a5b-44cc-a54f-564b4b486fc6"
-    } else {
-        $AzurePortalAppId = "c44b4083-3bb0-49c1-b47d-974e53cbdf3c"
-    }
-
     ### Define desired state
-    # Desired state for password policy based on the input parameter
     $DesiredPasswordPolicy = @{
         PasswordPolicies = $PasswordPolicy
     }
@@ -37,10 +28,6 @@ function Set-PasswordPolicy {
     $PreResults = Compare-PasswordPolicy -DesiredPolicy $DesiredPasswordPolicy.PasswordPolicies
     $DriftCounter = $PreResults["DriftCounter"]
     $DriftSummary = $PreResults["DriftSummary"]
-
-    if ($PreResults["ReturnCode"] -eq 1) {
-        return Get-ReturnValue -ExitCode 1 -DriftSummary $DriftSummary
-    }
 
     # If this is a drift detection run, end the function
     if (-Not ($ExecuteChange)) {
@@ -55,12 +42,18 @@ function Set-PasswordPolicy {
         if ($DriftCounter -gt 0) {
             Write-Host "-----------------------------------------------------------------------------------------------------"
             Write-Host "Updating password policies for all users to match the desired state."
-            
-            # Assuming a function or command exists to update password policy, such as Set-MgUserPasswordPolicy
-            Get-MgUser -All | ForEach-Object {
-                Update-MgUser -UserId $_.Id -PasswordPolicies $DesiredPasswordPolicy.PasswordPolicies
+
+            # Retrieve users with necessary properties
+            $Users = Get-MgUser -All -Select Id,DisplayName,UserPrincipalName,PasswordPolicies
+
+            # Update users with mismatched password policies
+            $Users | ForEach-Object {
+                if ($_.PasswordPolicies -ne $DesiredPasswordPolicy.PasswordPolicies) {
+                    Write-Host "Updating user: $($_.DisplayName) ($($_.UserPrincipalName))"
+                    Update-MgUser -UserId $_.Id -BodyParameter @{ PasswordPolicies = $DesiredPasswordPolicy.PasswordPolicies }
+                }
             }
-            
+
             Write-Host "Now performing post-configuration checks for password policy settings."
             Write-Host "-----------------------------------------------------------------------------------------------------"
 

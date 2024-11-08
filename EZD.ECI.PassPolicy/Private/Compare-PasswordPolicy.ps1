@@ -1,24 +1,22 @@
 function Compare-PasswordPolicy {
-
     Param (
         [Parameter(Mandatory=$true)]
         [string]$DesiredPolicy
     )
 
     # Compile the current state of the password policies
-    $CurrentPolicies = Get-MgUser -All | Select-Object -ExpandProperty PasswordPolicies -Unique
+    $CurrentPolicies = Get-MgUser -All -Property PasswordPolicies | Select-Object -ExpandProperty PasswordPolicies -Unique
 
-    # Generate a list of current policy settings
-    $CurrentPolicyHashes = @()
-    foreach ($CurrentPolicy in $CurrentPolicies) {
-        $CurrentPolicyHashes += $CurrentPolicy
+    # Handle cases where PasswordPolicies might be $null or empty
+    if (-not $CurrentPolicies) {
+        $CurrentPolicies = @("None")
     }
 
     # Calculate drift of the current state from the desired state
     $DriftCounter = 0
 
     # Check if there are any missing or misconfigured password policies
-    if ($CurrentPolicyHashes -NotContains $DesiredPolicy) {
+    if ($CurrentPolicies -notcontains $DesiredPolicy) {
         Write-Host "The password policy is not configured as desired."
         Write-Host "The password policy should be set to $DesiredPolicy."
         $DriftCounter += 1
@@ -30,12 +28,12 @@ function Compare-PasswordPolicy {
     $DriftSummary = @()
     Write-Host "DRIFT SUMMARY:"
     if ($DriftCounter -gt 0) {
-        $DriftSummary += Write-Output "CURRENT: Password policy is not set to $DesiredPolicy -> DESIRED: Password policy should be $DesiredPolicy"
+        $DriftSummary += "CURRENT: Password policy is not set to $DesiredPolicy -> DESIRED: Password policy should be $DesiredPolicy"
     } else {
-        $DriftSummary += Write-Output "No drift detected. The current state aligns with the desired state."
+        $DriftSummary += "No drift detected. The current state aligns with the desired state."
     }
 
-    $DriftSummary | foreach { Write-Host $_ }
+    $DriftSummary | ForEach-Object { Write-Host $_ }
 
     Write-Host "===================================================================================================="
 
