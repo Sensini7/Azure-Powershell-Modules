@@ -16,21 +16,21 @@ function Compare-DomainPasswordPolicy {
 
         # Logging the meaning of the current and desired settings
         if ($CurrentPasswordValidityPeriodInDays -eq 0) {
-            Write-Host "Domain $DomainId has a current password policy set to 'Never Expires'."
+            Write-Host "Domain $DomainId has a current password validity period of 0 day(s) 'Never Expires'."
         } else {
-            Write-Host "Domain $DomainId has a current password policy set to expire in $CurrentPasswordValidityPeriodInDays days."
+            Write-Host "Domain $DomainId has a current password validity period of $CurrentPasswordValidityPeriodInDays days."
         }
 
         if ($DesiredPasswordValidityPeriodInDays -eq 0) {
-            Write-Host "Desired password policy for domain $DomainId is set to 'Never Expires'."
+            Write-Host "Desired password validity period for domain $DomainId is set to 0 day(s) 'Never Expires'."
         } else {
-            Write-Host "Desired password policy for domain $DomainId is set to expire in $DesiredPasswordValidityPeriodInDays days."
+            Write-Host "Desired password validity period for domain $DomainId is set to expire in $DesiredPasswordValidityPeriodInDays days."
         }
 
         if ($CurrentPasswordValidityPeriodInDays -ne $DesiredPasswordValidityPeriodInDays) {
             Write-Host "The current password validity period is $CurrentPasswordValidityPeriodInDays days."
             Write-Host "The password policy for domain $DomainId is not configured as desired."
-            Write-Host "It should be set to $DesiredPasswordValidityPeriodInDays days."
+            Write-Host "Its password expiration period should be set to $DesiredPasswordValidityPeriodInDays days."
             $DriftCounter++
             $DriftSummary += "Domain $($DomainId): CURRENT: $($CurrentPasswordValidityPeriodInDays) -> DESIRED: $($DesiredPasswordValidityPeriodInDays)"
         } else {
