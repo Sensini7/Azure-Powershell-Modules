@@ -2,15 +2,6 @@ name: "Entra: Configure Entra ID Password Expiration Policies"
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        required: true
-        type: choice
-        description: Environment to deploy to
-        options:
-          - sumvita-gov
-          - sumvita
-          - kalvico
 
 permissions:
   id-token: write
@@ -27,10 +18,11 @@ env:
   AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
   PASSWORD_EXPIRATION_PERIOD: ${{ vars.PASSWORD_EXPIRATION_PERIOD }}
   EXECUTE_CHANGE: ${{ vars.EXECUTE_CHANGE }}
+  DEPLOY_ENVIRONMENT: ${{ vars.DEPLOY_ENVIRONMENT }} # Use this variable for the environment
 
 jobs:
   run-powershell-script:
-    environment: ${{ inputs.environment }}
+    environment: $env.DEPLOY_ENVIRONMENT # Use the environment variable here
     name: "Organization-wide Password Expiration Policy"
     runs-on: ubuntu-latest
     steps:
