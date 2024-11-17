@@ -1,33 +1,47 @@
-function Set-PasswordPolicy {
-
+function Set-DomainPasswordPolicy {
     Param (
-        [Parameter(Mandatory=$true)]
-        [ValidateSet("None", "DisablePasswordExpiration")]
+        [Parameter(Mandatory=$true, ParameterSetName='Expire')]
+        [Parameter(Mandatory=$true, ParameterSetName='NeverExpire')]
+        [ValidateSet("Expire", "NeverExpire")]
         [string]$PasswordPolicy,
 
-        [Parameter(Mandatory=$false)]
-        $IsAzureGov,
+        [Parameter(Mandatory=$true, ParameterSetName='Expire')]
+        [int]$PasswordValidityPeriodInDays,
 
-        [Parameter(ParameterSetName='ExecuteChange', Mandatory=$false)]
-        [switch] $ExecuteChange = $false
+        [Parameter(ParameterSetName='Expire')]
+        [Parameter(ParameterSetName='NeverExpire')]
+        [switch]$ExecuteChange = $false
     )
 
-    # Indicate whether this is a drift detection run or a deployment run
-    if (-Not ($ExecuteChange)) {
-        Write-Host "Current: Drift Detection Run"
+    # Determine the desired password validity period
+    if ($PasswordPolicy -eq "NeverExpire") {
+        $DesiredPasswordValidityPeriodInDays = 2147483647  # A large number to represent "never expire"
     } else {
-        Write-Host "Current: Deployment Run"
+        $DesiredPasswordValidityPeriodInDays = $PasswordValidityPeriodInDays
     }
 
-    ### Define desired state
-    $DesiredPasswordPolicy = @{
-        PasswordPolicies = $PasswordPolicy
-    }
+    # Indicate whether this is a drift detection run or a deployment run
+    $runType = if (-Not ($ExecuteChange)) { "Drift Detection Run" } else { "Deployment Run" }
+    Write-Host "Current: $runType"
 
     # Evaluate drift from the desired configuration using the helper function
-    $PreResults = Compare-PasswordPolicy -DesiredPolicy $DesiredPasswordPolicy.PasswordPolicies
-    $DriftCounter = $PreResults["DriftCounter"]
-    $DriftSummary = $PreResults["DriftSummary"]
+    $DomainList = Get-MgDomain | Select-Object Id, PasswordValidityPeriodInDays
+    $DriftCounter = 0
+    $DriftSummary = @()
+
+    foreach ($Domain in $DomainList) {
+        $DomainId = $Domain.Id
+        $CurrentPasswordValidityPeriodInDays = $Domain.PasswordValidityPeriodInDays
+
+        if ($CurrentPasswordValidityPeriodInDays -ne $DesiredPasswordValidityPeriodInDays) {
+            $DriftCounter++
+            $DriftSummary += "Domain $($DomainId): CURRENT: $($CurrentPasswordValidityPeriodInDays) -> DESIRED: $($DesiredPasswordValidityPeriodInDays)"
+            Write-Host "The password policy for domain $DomainId is not configured as desired."
+            Write-Host "The current password validity period is $CurrentPasswordValidityPeriodInDays days. It should be set to $DesiredPasswordValidityPeriodInDays days."
+        } else {
+            Write-Host "Password policy for domain $DomainId is configured as desired. No change is necessary."
+        }
+    }
 
     # If this is a drift detection run, end the function
     if (-Not ($ExecuteChange)) {
@@ -41,33 +55,41 @@ function Set-PasswordPolicy {
         # Execute the change if there is drift detected
         if ($DriftCounter -gt 0) {
             Write-Host "-----------------------------------------------------------------------------------------------------"
-            Write-Host "Updating password policies for all users to match the desired state."
+            Write-Host "Updating password policies for all domains to match the desired state."
 
-            # Retrieve users with necessary properties
-            $Users = Get-MgUser -All -Select Id,DisplayName,UserPrincipalName,PasswordPolicies
+            foreach ($Domain in $DomainList) {
+                $DomainId = $Domain.Id
+                $CurrentPasswordValidityPeriodInDays = $Domain.PasswordValidityPeriodInDays
 
-            # Update users with mismatched password policies
-            $Users | ForEach-Object {
-                if ($_.PasswordPolicies -ne $DesiredPasswordPolicy.PasswordPolicies) {
-                    Write-Host "Updating user: $($_.DisplayName) ($($_.UserPrincipalName))"
-                    Update-MgUser -UserId $_.Id -BodyParameter @{ PasswordPolicies = $DesiredPasswordPolicy.PasswordPolicies }
+                if ($CurrentPasswordValidityPeriodInDays -ne $DesiredPasswordValidityPeriodInDays) {
+                    Write-Host "Updating domain: $DomainId"
+                    Update-MgDomain -DomainId $DomainId -PasswordValidityPeriodInDays $DesiredPasswordValidityPeriodInDays
                 }
             }
 
             Write-Host "Now performing post-configuration checks for password policy settings."
             Write-Host "-----------------------------------------------------------------------------------------------------"
 
-            # Re-evaluate drift from the desired configuration using the helper function again
-            $PostResults = Compare-PasswordPolicy -DesiredPolicy $DesiredPasswordPolicy.PasswordPolicies
-            $DriftCounter = $PostResults["DriftCounter"]
-            $DriftSummary = $PostResults["DriftSummary"]
+            # Re-evaluate drift from the desired configuration
+            $PostDriftCounter = 0
+            $PostDriftSummary = @()
 
-            if ($DriftCounter -eq 0) {
+            foreach ($Domain in Get-MgDomain | Select-Object Id, PasswordValidityPeriodInDays) {
+                $DomainId = $Domain.Id
+                $PostPasswordValidityPeriodInDays = $Domain.PasswordValidityPeriodInDays
+
+                if ($PostPasswordValidityPeriodInDays -ne $DesiredPasswordValidityPeriodInDays) {
+                    $PostDriftCounter++
+                    $PostDriftSummary += "Domain $($DomainId): CURRENT: $($PostPasswordValidityPeriodInDays) -> DESIRED: $($DesiredPasswordValidityPeriodInDays)"
+                }
+            }
+
+            if ($PostDriftCounter -eq 0) {
                 Write-Host "Settings are configured as desired. The change was successful."
-                return Get-ReturnValue -ExitCode 3 -DriftSummary $DriftSummary
+                return Get-ReturnValue -ExitCode 3 -DriftSummary $PostDriftSummary
             } else {
                 Write-Host "WARNING: Settings did not pass post-execution checks. The change was not successful."
-                return Get-ReturnValue -ExitCode 1 -DriftSummary $DriftSummary
+                return Get-ReturnValue -ExitCode 1 -DriftSummary $PostDriftSummary
             }
         } elseif ($DriftCounter -eq 0) {
             Write-Host "No change is required. Settings are already configured as desired."

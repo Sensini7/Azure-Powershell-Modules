@@ -1,61 +1,58 @@
-function Compare-PasswordPolicy {
+function Compare-DomainPasswordPolicy {
     Param (
         [Parameter(Mandatory=$true)]
-        [string]$DesiredPolicy
+        [int]$DesiredPasswordValidityPeriodInDays
     )
 
-    # Compile the current state of the password policies
-    $CurrentPolicies = Get-MgUser -All -Property PasswordPolicies | Select-Object -ExpandProperty PasswordPolicies -Unique
+    # Retrieve the current state of the password validity period for each domain
+    $DomainList = Get-MgDomain | Select-Object Id, PasswordValidityPeriodInDays
 
-    # Handle cases where PasswordPolicies might be $null or empty
-    if (-not $CurrentPolicies) {
-        $CurrentPolicies = @("None")
-    }
-
-    # Calculate drift of the current state from the desired state
+    # Initialize drift counter and summary
     $DriftCounter = 0
+    $DriftSummary = @()
 
-    # Check if there are any missing or misconfigured password policies
-    if ($CurrentPolicies -notcontains $DesiredPolicy) {
-        Write-Host "The password policy is not configured as desired."
-        Write-Host "The password policy should be set to $DesiredPolicy."
-        $DriftCounter += 1
-    } else {
-        Write-Host "Password policy is configured as desired. No change is necessary."
+    # Output the current run type
+    Write-Host "Current: Drift Detection Run"
+
+    # Iterate over each domain to check for drift
+    foreach ($Domain in $DomainList) {
+        $DomainId = $Domain.Id
+        $CurrentPasswordValidityPeriodInDays = $Domain.PasswordValidityPeriodInDays
+        
+        # Check if the current setting matches the desired setting
+        if ($CurrentPasswordValidityPeriodInDays -ne $DesiredPasswordValidityPeriodInDays) {
+            Write-Host "The password policy for domain $DomainId is not configured as desired."
+            Write-Host "The current password validity period is $CurrentPasswordValidityPeriodInDays days."
+            Write-Host "It should be set to $DesiredPasswordValidityPeriodInDays days."
+            $DriftCounter++
+            $DriftSummary += "Domain $($DomainId): CURRENT: $($CurrentPasswordValidityPeriodInDays) -> DESIRED: $($DesiredPasswordValidityPeriodInDays)"
+        } else {
+            Write-Host "Password policy for domain $DomainId is configured as desired. No change is necessary."
+        }
     }
 
-    # Summarize drift
-    $DriftSummary = @()
+    # Output drift summary
     Write-Host "DRIFT SUMMARY:"
     if ($DriftCounter -gt 0) {
-        $DriftSummary += "CURRENT: Password policy is not set to $DesiredPolicy -> DESIRED: Password policy should be $DesiredPolicy"
+        $DriftSummary | ForEach-Object { Write-Host $_ }
     } else {
-        $DriftSummary += "No drift detected. The current state aligns with the desired state."
+        Write-Host "No drift detected. The current state aligns with the desired state for all domains."
     }
-
-    $DriftSummary | ForEach-Object { Write-Host $_ }
 
     Write-Host "===================================================================================================="
 
     # Summarize current state
     Write-Host "------------------- Current State of Password Policies --------------------"
     Write-Host "===================================================================================================="
-    if (!$CurrentPolicies) {
-        Write-Host "There are no password policies currently configured."
-    } else {
-        $PolicyCounter = 0
-        foreach ($Policy in $CurrentPolicies) {
-            Write-Host "Password Policy[$PolicyCounter]:"
-            Write-Host "`tPolicy: $Policy"
-            $PolicyCounter += 1
-        }
+    foreach ($Domain in $DomainList) {
+        Write-Host "Domain $($Domain.Id): Password Validity Period: $($Domain.PasswordValidityPeriodInDays) days"
     }
-
     Write-Host "===================================================================================================="
+
     if ($DriftCounter -gt 0) {
-        Write-Host "DRIFT DETECTED: The current state does not align with the desired state."
+        Write-Host "DRIFT DETECTED: The current state does not align with the desired state for some domains."
     } else {
-        Write-Host "NO DRIFT DETECTED: The current state aligns with the desired state."
+        Write-Host "NO DRIFT DETECTED: The current state aligns with the desired state for all domains."
     }
     Write-Host "===================================================================================================="
 

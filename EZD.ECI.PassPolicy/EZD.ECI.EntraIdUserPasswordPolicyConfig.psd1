@@ -20,7 +20,7 @@
     # Modules that must be imported into the global environment prior to importing this module
     RequiredModules = @(
         @{
-            ModuleName = "Microsoft.Graph.Users"
+            ModuleName = "Microsoft.Graph.Identity.DirectoryManagement"
             ModuleVersion = "2.24.0"
         },
         @{
@@ -30,7 +30,7 @@
     )
 
     # Functions to export from this module
-    FunctionsToExport = @('Compare-PasswordPolicy', 'Set-PasswordPolicy')
+    FunctionsToExport = @('Compare-DomainPasswordPolicy', 'Set-DomainPasswordPolicy')
 
     # Cmdlets to export from this module
     CmdletsToExport = @()
