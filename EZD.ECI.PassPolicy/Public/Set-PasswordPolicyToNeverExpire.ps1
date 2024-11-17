@@ -1,30 +1,20 @@
 function Set-DomainPasswordPolicy {
-    Param (
-        [Parameter(Mandatory=$true, ParameterSetName='Expire')]
-        [Parameter(Mandatory=$true, ParameterSetName='NeverExpire')]
-        [ValidateSet("Expire", "NeverExpire")]
-        [string]$PasswordPolicy,
+    # Determine desired settings from environment variables
+    $PasswordValidityPeriodInDays = [int]$env:PASSWORD_EXPIRATION_PERIOD
+    $ExecuteChange = [bool]$env:EXECUTE_CHANGE
 
-        [Parameter(Mandatory=$true, ParameterSetName='Expire')]
-        [int]$PasswordValidityPeriodInDays,
+    # Determine the desired password policy
+    $PasswordPolicy = if ($PasswordValidityPeriodInDays -eq 0) { "NeverExpire" } else { "Expire" }
 
-        [Parameter(ParameterSetName='Expire')]
-        [Parameter(ParameterSetName='NeverExpire')]
-        [switch]$ExecuteChange = $false
-    )
-
-    # Determine the desired password validity period
     if ($PasswordPolicy -eq "NeverExpire") {
-        $DesiredPasswordValidityPeriodInDays = 0  # A large number to represent "never expire"
+        $DesiredPasswordValidityPeriodInDays = 0
     } else {
         $DesiredPasswordValidityPeriodInDays = $PasswordValidityPeriodInDays
     }
 
-    # Indicate whether this is a drift detection run or a deployment run
     $runType = if (-Not ($ExecuteChange)) { "Drift Detection Run" } else { "Deployment Run" }
     Write-Host "Current: $runType"
 
-    # Evaluate drift from the desired configuration using the helper function
     $DomainList = Get-MgDomain | Select-Object Id, PasswordValidityPeriodInDays
     $DriftCounter = 0
     $DriftSummary = @()
@@ -43,7 +33,6 @@ function Set-DomainPasswordPolicy {
         }
     }
 
-    # If this is a drift detection run, end the function
     if (-Not ($ExecuteChange)) {
         Write-Host "This is a drift detection run. No changes will be made."
         if ($DriftCounter -gt 0) {
@@ -52,7 +41,6 @@ function Set-DomainPasswordPolicy {
             return Get-ReturnValue -ExitCode 0 -DriftSummary $DriftSummary
         }
     } else {
-        # Execute the change if there is drift detected
         if ($DriftCounter -gt 0) {
             Write-Host "-----------------------------------------------------------------------------------------------------"
             Write-Host "Updating password policies for all domains to match the desired state."
@@ -70,7 +58,6 @@ function Set-DomainPasswordPolicy {
             Write-Host "Now performing post-configuration checks for password policy settings."
             Write-Host "-----------------------------------------------------------------------------------------------------"
 
-            # Re-evaluate drift from the desired configuration
             $PostDriftCounter = 0
             $PostDriftSummary = @()
 

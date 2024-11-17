@@ -11,22 +11,6 @@ on:
           - sumvita-gov
           - sumvita
           - kalvico
-      execute:
-        required: true
-        type: boolean
-        description: Execute change
-        default: false
-      password_policy:
-        required: true
-        type: choice
-        description: Password policy setting
-        options:
-          - Expire
-          - NeverExpire
-      password_validity_period_in_days:
-        required: false
-        type: number
-        description: Validity period in days (only required if 'Expire' is selected)
 
 permissions:
   id-token: write
@@ -41,6 +25,8 @@ env:
   IS_AZURE_GOV: ${{ vars.IS_AZURE_GOV }}
   AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
   AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  PASSWORD_EXPIRATION_PERIOD: ${{ vars.PASSWORD_EXPIRATION_PERIOD }}
+  EXECUTE_CHANGE: ${{ vars.EXECUTE_CHANGE }}
 
 jobs:
   run-powershell-script:
@@ -83,48 +69,22 @@ jobs:
           Connect-MgGraph -AccessToken $SecureAccessToken -NoWelcome -Environment $GRAPH_ENVIRONMENT
 
           Write-Output "Installing Microsoft Graph Identity Directory Management Module"
-          # Install Microsoft.Graph.Identity.DirectoryManagement module if not already installed
           if (-Not (Get-InstalledModule -Name "Microsoft.Graph.Identity.DirectoryManagement" -ErrorAction SilentlyContinue)) {
             Write-Output "Installing Microsoft.Graph.Identity.DirectoryManagement module..."
             Install-Module -Name "Microsoft.Graph.Identity.DirectoryManagement" -Scope CurrentUser -Force
           }
 
-          # Verify that the required Microsoft Graph Identity Directory Management module is installed
           if (-Not (Get-InstalledModule -Name "Microsoft.Graph.Identity.DirectoryManagement" -ErrorAction SilentlyContinue)) {
             Write-Error "Microsoft.Graph.Identity.DirectoryManagement module is not installed. Please install it before running this workflow."
             exit 1
           }
 
           Write-Output "Importing Graph Module"
-          # Import the Microsoft.Graph.Identity.DirectoryManagement module into the session
           Import-Module -Name "Microsoft.Graph.Identity.DirectoryManagement" -Force
 
           Write-Output "Importing Password Expiration Policy And Common Modules"
-          # Import custom modules
           Import-Module .\EZD.ECI.Common\EZD.ECI.Common\EZD.ECI.Common.psm1 -Force
           Import-Module .\EZD.ECI.EntraUserPasswordExpiration\EZD.ECI.PassPolicy\EZD.ECI.EntraIdUserPasswordPolicyConfig.psm1 -Force
 
-          Write-Output "Defining Variables"
-          # Define variables
-          $PasswordPolicy = "${{ github.event.inputs.password_policy }}"
-          $ExecuteChange = [System.Convert]::ToBoolean("${{ github.event.inputs.execute }}")
-
-          if ($PasswordPolicy -eq "Expire") {
-            $PasswordValidityPeriodInDays = ${{ github.event.inputs.password_validity_period_in_days }}
-            if (-not $PasswordValidityPeriodInDays) {
-              Write-Error "PasswordValidityPeriodInDays must be specified when PasswordPolicy is 'Expire'."
-              exit 1
-            }
-          } elseif ($PasswordPolicy -eq "NeverExpire") {
-            $PasswordValidityPeriodInDays = 2147483647 # A large number to represent never expire
-          } else {
-            Write-Error "Invalid PasswordPolicy value."
-            exit 1
-          }
-
-          Write-Output "Password Policy: $PasswordPolicy"
-          Write-Output "Password Validity Period In Days: $PasswordValidityPeriodInDays"
-
           Write-Output "Configuring Password Expiration Settings"
-          # Configure Entra ID password expiration settings
-          Set-DomainPasswordPolicy -PasswordPolicy $PasswordPolicy -PasswordValidityPeriodInDays $PasswordValidityPeriodInDays -ExecuteChange:$ExecuteChange
+          Set-DomainPasswordPolicy
