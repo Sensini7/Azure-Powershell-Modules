@@ -51,8 +51,8 @@ jobs:
       - name: Checkout PasswordPolicy module
         uses: actions/checkout@v4
         with:
-          repository: 'EasyDynamics/EntraID-800-53-Terraform-Modules'
-          ref: 'Noah/PasswordPolicy'
+          repository: 'Sensini7/Azure-User-Password-Policy'
+          ref: 'Sensini/OrgPassPolicy'
           path: 'EZD.ECI.EntraUserPasswordExpiration'
           sparse-checkout: 'powershell-modules/EZD.ECI.PasswordPolicy'
           ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
@@ -60,10 +60,10 @@ jobs:
       - name: Checkout common module
         uses: actions/checkout@v4
         with:
-          repository: 'EasyDynamics/EntraID-800-53-Terraform-Modules'
-          ref: '0.0.95'
+          repository: 'Sensini7/Azure-User-Password-Policy'
+          ref: 'Sensini/OrgPassPolicy'
           path: 'EZD.ECI.Common'
-          sparse-checkout: 'powershell-modules/EZD.ECI.Common'
+          sparse-checkout: 'EZD.ECI.Common'
           ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
 
       - name: Configure Entra ID Password Expiration Settings
