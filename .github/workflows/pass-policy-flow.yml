@@ -54,7 +54,7 @@ jobs:
           repository: 'Sensini7/Azure-User-Password-Policy'
           ref: 'Sensini/OrgPassPolicy'
           path: 'EZD.ECI.EntraUserPasswordExpiration'
-          sparse-checkout: 'powershell-modules/EZD.ECI.PasswordPolicy'
+          sparse-checkout: 'EZD.ECI.PassPolicy'
           ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
 
       - name: Checkout common module
@@ -101,8 +101,8 @@ jobs:
 
           Write-Output "Importing Password Expiration Policy And Common Modules"
           # Import custom modules
-          Import-Module .\EZD.ECI.Common\powershell-modules\EZD.ECI.Common\EZD.ECI.Common.psm1 -Force
-          Import-Module .\EZD.ECI.EntraUserPasswordExpiration\powershell-modules\EZD.ECI.PasswordPolicy\EZD.ECI.EntraIdUserPasswordPolicyConfig.psm1 -Force
+          Import-Module .\EZD.ECI.Common\EZD.ECI.Common\EZD.ECI.Common.psm1 -Force
+          Import-Module .\EZD.ECI.EntraUserPasswordExpiration\EZD.ECI.PassPolicy\EZD.ECI.EntraIdUserPasswordPolicyConfig.psm1 -Force
 
           Write-Output "Defining Variables"
           # Define variables
