@@ -1,15 +1,12 @@
 ﻿function Get-ReturnValue {
-
     Param (
         [Parameter(Mandatory=$true)]
-		$ExitCode,
-
+        $ExitCode,
         [Parameter(Mandatory=$false)]
-		$DriftSummary
+        $DriftSummary
     )
 
-    switch($ExitCode)
-    {
+    switch($ExitCode) {
         0 { $ReturnValue = @{ "ExitCode" = 0; "ExitLogs" = "No drift detected." } }
         1 { $ReturnValue = @{ "ExitCode" = 1; "ExitLogs" = "WARNING: An execution error occurred." } }
         2 { $ReturnValue = @{ "ExitCode" = 2; "ExitLogs" = $DriftSummary } }
@@ -21,5 +18,4 @@
     }
 
     return $ReturnValue
-
 }

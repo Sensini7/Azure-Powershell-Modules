@@ -4,25 +4,32 @@ function Compare-DomainPasswordPolicy {
         [int]$DesiredPasswordValidityPeriodInDays
     )
 
-    # Retrieve the current state of the password validity period for each domain
     $DomainList = Get-MgDomain | Select-Object Id, PasswordValidityPeriodInDays
-
-    # Initialize drift counter and summary
     $DriftCounter = 0
     $DriftSummary = @()
 
-    # Output the current run type
     Write-Host "Current: Drift Detection Run"
 
-    # Iterate over each domain to check for drift
     foreach ($Domain in $DomainList) {
         $DomainId = $Domain.Id
         $CurrentPasswordValidityPeriodInDays = $Domain.PasswordValidityPeriodInDays
-        
-        # Check if the current setting matches the desired setting
+
+        # Logging the meaning of the current and desired settings
+        if ($CurrentPasswordValidityPeriodInDays -eq 0) {
+            Write-Host "Domain $DomainId has a current password policy set to 'Never Expires'."
+        } else {
+            Write-Host "Domain $DomainId has a current password policy set to expire in $CurrentPasswordValidityPeriodInDays days."
+        }
+
+        if ($DesiredPasswordValidityPeriodInDays -eq 0) {
+            Write-Host "Desired password policy for domain $DomainId is set to 'Never Expires'."
+        } else {
+            Write-Host "Desired password policy for domain $DomainId is set to expire in $DesiredPasswordValidityPeriodInDays days."
+        }
+
         if ($CurrentPasswordValidityPeriodInDays -ne $DesiredPasswordValidityPeriodInDays) {
-            Write-Host "The password policy for domain $DomainId is not configured as desired."
             Write-Host "The current password validity period is $CurrentPasswordValidityPeriodInDays days."
+            Write-Host "The password policy for domain $DomainId is not configured as desired."
             Write-Host "It should be set to $DesiredPasswordValidityPeriodInDays days."
             $DriftCounter++
             $DriftSummary += "Domain $($DomainId): CURRENT: $($CurrentPasswordValidityPeriodInDays) -> DESIRED: $($DesiredPasswordValidityPeriodInDays)"
@@ -31,7 +38,6 @@ function Compare-DomainPasswordPolicy {
         }
     }
 
-    # Output drift summary
     Write-Host "DRIFT SUMMARY:"
     if ($DriftCounter -gt 0) {
         $DriftSummary | ForEach-Object { Write-Host $_ }
@@ -40,8 +46,6 @@ function Compare-DomainPasswordPolicy {
     }
 
     Write-Host "===================================================================================================="
-
-    # Summarize current state
     Write-Host "------------------- Current State of Password Policies --------------------"
     Write-Host "===================================================================================================="
     foreach ($Domain in $DomainList) {
