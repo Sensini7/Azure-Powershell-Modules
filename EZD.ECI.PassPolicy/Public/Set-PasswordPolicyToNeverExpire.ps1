@@ -29,7 +29,7 @@ function Set-DomainPasswordPolicy {
             Write-Host "The password policy for domain $DomainId is not configured as desired."
             Write-Host "The current password validity period is $CurrentPasswordValidityPeriodInDays days. It should be set to $DesiredPasswordValidityPeriodInDays days."
         } else {
-            Write-Host "The Current Password policy for domain $DomainId is  $DesiredPasswordValidityPeriodInDays which matches the desired configuration. No change is necessary."
+            Write-Host "The Current Password policy for domain $DomainId is $DesiredPasswordValidityPeriodInDays which matches the desired configuration. No change is necessary."
         }
     }
 
