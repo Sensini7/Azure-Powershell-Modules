@@ -15,7 +15,7 @@ function Set-DomainPasswordPolicy {
 
     # Determine the desired password validity period
     if ($PasswordPolicy -eq "NeverExpire") {
-        $DesiredPasswordValidityPeriodInDays = 2147483647  # A large number to represent "never expire"
+        $DesiredPasswordValidityPeriodInDays = 0  # A large number to represent "never expire"
     } else {
         $DesiredPasswordValidityPeriodInDays = $PasswordValidityPeriodInDays
     }
