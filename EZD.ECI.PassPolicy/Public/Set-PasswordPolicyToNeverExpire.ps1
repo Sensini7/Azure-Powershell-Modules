@@ -1,16 +1,12 @@
 function Set-DomainPasswordPolicy {
     # Determine desired settings from environment variables
     $PasswordValidityPeriodInDays = [int]$env:PASSWORD_EXPIRATION_PERIOD
-    $ExecuteChange = [bool]$env:EXECUTE_CHANGE
+    $ExecuteChange = [System.Convert]::ToBoolean($env:EXECUTE_CHANGE)
 
     # Determine the desired password policy
     $PasswordPolicy = if ($PasswordValidityPeriodInDays -eq 0) { "NeverExpire" } else { "Expire" }
 
-    if ($PasswordPolicy -eq "NeverExpire") {
-        $DesiredPasswordValidityPeriodInDays = 0
-    } else {
-        $DesiredPasswordValidityPeriodInDays = $PasswordValidityPeriodInDays
-    }
+    $DesiredPasswordValidityPeriodInDays = if ($PasswordPolicy -eq "NeverExpire") { 0 } else { $PasswordValidityPeriodInDays }
 
     $runType = if (-Not ($ExecuteChange)) { "Drift Detection Run" } else { "Deployment Run" }
     Write-Host "Current: $runType"
