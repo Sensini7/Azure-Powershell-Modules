@@ -14,24 +14,39 @@ function Compare-DomainPasswordPolicy {
     $DriftCounter = 0
     $DriftSummary = @()
 
-    Write-Host "Current: Drift Detection Run"
+    Write-Host "===================================================================================================="
+    Write-Host "===================================================================================================="
+
+    Write-Host "CURRENT: DRIFT DETECTION RUN"
+
+    Write-Host "===================================================================================================="
+    Write-Host "===================================================================================================="
 
     foreach ($Domain in $DomainList) {
         $DomainId = $Domain.Id
         $CurrentPasswordValidityPeriodInDays = $Domain.PasswordValidityPeriodInDays
 
         # Logging the meaning of the current and desired settings
+
+        Write-Host "===================================================================================================="
+        Write-Host "===================================================================================================="
+
         if ($CurrentPasswordValidityPeriodInDays -eq $NeverExpireValue) {
             Write-Host "Domain $DomainId has a current password validity period of $NeverExpireValue day(s) 'Never Expires'."
         } else {
-            Write-Host "Domain $DomainId has a current password validity period of $CurrentPasswordValidityPeriodInDays days."
+            Write-Host "Domain $DomainId has a current password validity period of $CurrentPasswordValidityPeriodInDays days. It Expires In $CurrentPasswordValidityPeriodInDays "
         }
+        
+        Write-Host "===================================================================================================="
+        Write-Host "===================================================================================================="
 
         if ($DesiredPasswordValidityPeriodInDays -eq $NeverExpireValue) {
             Write-Host "Desired password validity period for domain $DomainId is set to $NeverExpireValue day(s) 'Never Expires'."
         } else {
             Write-Host "Desired password validity period for domain $DomainId is set to expire in $DesiredPasswordValidityPeriodInDays days."
         }
+        Write-Host "===================================================================================================="
+        Write-Host "===================================================================================================="
 
         if ($CurrentPasswordValidityPeriodInDays -ne $DesiredPasswordValidityPeriodInDays) {
             Write-Host "The current password validity period is $CurrentPasswordValidityPeriodInDays days."
@@ -44,6 +59,9 @@ function Compare-DomainPasswordPolicy {
         }
     }
 
+    Write-Host "===================================================================================================="
+    Write-Host "===================================================================================================="
+
     Write-Host "DRIFT SUMMARY:"
     if ($DriftCounter -gt 0) {
         $DriftSummary | ForEach-Object { Write-Host $_ }
@@ -54,15 +72,16 @@ function Compare-DomainPasswordPolicy {
     Write-Host "===================================================================================================="
     Write-Host "------------------- Current State of Password Policies --------------------"
     Write-Host "===================================================================================================="
+
     foreach ($Domain in $DomainList) {
         Write-Host "Domain $($Domain.Id): Password Validity Period: $($Domain.PasswordValidityPeriodInDays) days"
     }
     Write-Host "===================================================================================================="
 
     if ($DriftCounter -gt 0) {
-        Write-Host "DRIFT DETECTED: The current state does not align with the desired state for some domains."
+        Write-Host "DRIFT DETECTED: THE CURRENT STATE DOES NOT ALIGN WITH THE DESIRED STATE FOR SOME DOMAINS"
     } else {
-        Write-Host "NO DRIFT DETECTED: The current state aligns with the desired state for all domains."
+        Write-Host "NO DRIFT DETECTED: THE CURRENT STATE DOES NOT ALIGN WITH THE DESIRED STATE FOR ALL DOMAINS"
     }
     Write-Host "===================================================================================================="
 

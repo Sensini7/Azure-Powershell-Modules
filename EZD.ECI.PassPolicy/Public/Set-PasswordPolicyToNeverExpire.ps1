@@ -21,17 +21,26 @@ function Set-DomainPasswordPolicy {
         $CurrentPasswordValidityPeriodInDays = $Domain.PasswordValidityPeriodInDays
 
         # Logging the meaning of the current and desired settings
+
+        Write-Host "===================================================================================================="
+        Write-Host "===================================================================================================="
+        
         if ($CurrentPasswordValidityPeriodInDays -eq $NeverExpireValue) {
             Write-Host "Domain $DomainId has a current password validity period of $NeverExpireValue day(s) 'Never Expires'."
         } else {
             Write-Host "Domain $DomainId has a current password validity period of $CurrentPasswordValidityPeriodInDays days."
         }
+        
+        Write-Host "===================================================================================================="
+        Write-Host "===================================================================================================="
 
         if ($DesiredPasswordValidityPeriodInDays -eq $NeverExpireValue) {
             Write-Host "Desired password validity period for domain $DomainId is set to $NeverExpireValue day(s) 'Never Expires'."
         } else {
             Write-Host "Desired password validity period for domain $DomainId is set to expire in $PasswordValidityPeriodInDays days."
         }
+        Write-Host "===================================================================================================="
+        Write-Host "===================================================================================================="
 
         if ($CurrentPasswordValidityPeriodInDays -ne $PasswordValidityPeriodInDays) {
             $DriftCounter++
@@ -44,7 +53,7 @@ function Set-DomainPasswordPolicy {
     }
 
     if (-Not ($ExecuteChange)) {
-        Write-Host "This is a drift detection run. No changes will be made."
+        Write-Host "THIS IS A DRIFT DETECTION RUN. NO CHANGES WILL BE MADE"
         if ($DriftCounter -gt 0) {
             return Get-ReturnValue -ExitCode 2 -DriftSummary $DriftSummary
         } else {
@@ -52,21 +61,22 @@ function Set-DomainPasswordPolicy {
         }
     } else {
         if ($DriftCounter -gt 0) {
-            Write-Host "-----------------------------------------------------------------------------------------------------"
-            Write-Host "Updating password policies for all domains to match the desired state."
+            Write-Host "===================================================================================================="
+            Write-Host "UPDATING PASSWWORD POLICIES FOR ALL DOMAINS TO MATCH THE DESIRED STATE."
+            Write-Host "===================================================================================================="
 
             foreach ($Domain in $DomainList) {
                 $DomainId = $Domain.Id
                 $CurrentPasswordValidityPeriodInDays = $Domain.PasswordValidityPeriodInDays
 
                 if ($CurrentPasswordValidityPeriodInDays -ne $PasswordValidityPeriodInDays) {
-                    Write-Host "Updating domain: $DomainId"
+                    Write-Host "UPDATING DOMAIN: $DomainId"
                     Update-MgDomain -DomainId $DomainId -PasswordValidityPeriodInDays $PasswordValidityPeriodInDays
                 }
             }
-
-            Write-Host "Now performing post-configuration checks for password policy settings."
-            Write-Host "-----------------------------------------------------------------------------------------------------"
+            Write-Host "===================================================================================================="
+            Write-Host "NOW PERFORMING POST-CONFIGURATION CHECKS FOR PASSWORD POLICY SETTINGS."
+            Write-Host "===================================================================================================="
 
             $PostDriftCounter = 0
             $PostDriftSummary = @()
@@ -82,17 +92,17 @@ function Set-DomainPasswordPolicy {
             }
 
             if ($PostDriftCounter -eq 0) {
-                Write-Host "Settings are configured as desired. The change was successful."
+                Write-Host "SETTINGS ARE CONFIGURED AS DESIRED. THE CHANGE WAS SUCCESSFUL."
                 return Get-ReturnValue -ExitCode 3 -DriftSummary $PostDriftSummary
             } else {
-                Write-Host "WARNING: Settings did not pass post-execution checks. The change was not successful."
+                Write-Host "WARNING: SETTINGS DID NOT PASS POST-EXECUTION CHECKS.THE CHANGE WAS NOT SUCCESSFUL"
                 return Get-ReturnValue -ExitCode 1 -DriftSummary $PostDriftSummary
             }
         } elseif ($DriftCounter -eq 0) {
-            Write-Host "No change is required. Settings are already configured as desired."
+            Write-Host "NO CHANGE IS REQUIRED. SETTINGS ARE ALREADY CONFIGURED AS DESIRED"
             return Get-ReturnValue -ExitCode 0 -DriftSummary $DriftSummary
         } else {
-            Write-Host "WARNING: Unable to complete post-execution validation."
+            Write-Host "WARNING: UNABLE TO COMPLETE POST-EXECUTION VALIDATION."
             return Get-ReturnValue -ExitCode 1 -DriftSummary $DriftSummary
         }
     }
