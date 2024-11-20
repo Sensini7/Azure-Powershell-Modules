@@ -30,16 +30,16 @@ function Set-DomainPasswordPolicy {
         if ($DesiredPasswordValidityPeriodInDays -eq $NeverExpireValue) {
             Write-Host "Desired password validity period for domain $DomainId is set to $NeverExpireValue day(s) 'Never Expires'."
         } else {
-            Write-Host "Desired password validity period for domain $DomainId is set to expire in $DesiredPasswordValidityPeriodInDays days."
+            Write-Host "Desired password validity period for domain $DomainId is set to expire in $PasswordValidityPeriodInDays days."
         }
 
-        if ($CurrentPasswordValidityPeriodInDays -ne $DesiredPasswordValidityPeriodInDays) {
+        if ($CurrentPasswordValidityPeriodInDays -ne $PasswordValidityPeriodInDays) {
             $DriftCounter++
-            $DriftSummary += "Domain $($DomainId): CURRENT: $($CurrentPasswordValidityPeriodInDays) -> DESIRED: $($DesiredPasswordValidityPeriodInDays)"
+            $DriftSummary += "Domain $($DomainId): CURRENT: $($CurrentPasswordValidityPeriodInDays) -> DESIRED: $($PasswordValidityPeriodInDays)"
             Write-Host "The password policy for domain $DomainId is not configured as desired."
-            Write-Host "The current password validity period is $CurrentPasswordValidityPeriodInDays days. Its expiration period should be set to $DesiredPasswordValidityPeriodInDays days."
+            Write-Host "The current password validity period is $CurrentPasswordValidityPeriodInDays days. Its expiration period should be set to $PasswordValidityPeriodInDays days."
         } else {
-            Write-Host "The Current Password policy for domain $DomainId is $DesiredPasswordValidityPeriodInDays days which matches the desired configuration. No change is necessary."
+            Write-Host "The Current Password policy for domain $DomainId is $PasswordValidityPeriodInDays days which matches the desired configuration. No change is necessary."
         }
     }
 
@@ -59,9 +59,9 @@ function Set-DomainPasswordPolicy {
                 $DomainId = $Domain.Id
                 $CurrentPasswordValidityPeriodInDays = $Domain.PasswordValidityPeriodInDays
 
-                if ($CurrentPasswordValidityPeriodInDays -ne $DesiredPasswordValidityPeriodInDays) {
+                if ($CurrentPasswordValidityPeriodInDays -ne $PasswordValidityPeriodInDays) {
                     Write-Host "Updating domain: $DomainId"
-                    Update-MgDomain -DomainId $DomainId -PasswordValidityPeriodInDays $DesiredPasswordValidityPeriodInDays
+                    Update-MgDomain -DomainId $DomainId -PasswordValidityPeriodInDays $PasswordValidityPeriodInDays
                 }
             }
 
@@ -75,9 +75,9 @@ function Set-DomainPasswordPolicy {
                 $DomainId = $Domain.Id
                 $PostPasswordValidityPeriodInDays = $Domain.PasswordValidityPeriodInDays
 
-                if ($PostPasswordValidityPeriodInDays -ne $DesiredPasswordValidityPeriodInDays) {
+                if ($PostPasswordValidityPeriodInDays -ne $PasswordValidityPeriodInDays) {
                     $PostDriftCounter++
-                    $PostDriftSummary += "Domain $($DomainId): CURRENT: $($PostPasswordValidityPeriodInDays) -> DESIRED: $($DesiredPasswordValidityPeriodInDays)"
+                    $PostDriftSummary += "Domain $($DomainId): CURRENT: $($PostPasswordValidityPeriodInDays) -> DESIRED: $($PasswordValidityPeriodInDays)"
                 }
             }
 
