@@ -4,6 +4,12 @@ function Compare-DomainPasswordPolicy {
         [int]$DesiredPasswordValidityPeriodInDays
     )
 
+    # Convert 0 to a large number to represent "Never Expire"
+    $NeverExpireValue = 2147483647
+    if ($DesiredPasswordValidityPeriodInDays -eq 0) {
+        $DesiredPasswordValidityPeriodInDays = $NeverExpireValue
+    }
+    
     $DomainList = Get-MgDomain | Select-Object Id, PasswordValidityPeriodInDays
     $DriftCounter = 0
     $DriftSummary = @()
@@ -15,13 +21,13 @@ function Compare-DomainPasswordPolicy {
         $CurrentPasswordValidityPeriodInDays = $Domain.PasswordValidityPeriodInDays
 
         # Logging the meaning of the current and desired settings
-        if ($CurrentPasswordValidityPeriodInDays -eq 0) {
+        if ($CurrentPasswordValidityPeriodInDays -eq $NeverExpireValue) {
             Write-Host "Domain $DomainId has a current password validity period of 0 day(s) 'Never Expires'."
         } else {
             Write-Host "Domain $DomainId has a current password validity period of $CurrentPasswordValidityPeriodInDays days."
         }
 
-        if ($DesiredPasswordValidityPeriodInDays -eq 0) {
+        if ($DesiredPasswordValidityPeriodInDays -eq $NeverExpireValue) {
             Write-Host "Desired password validity period for domain $DomainId is set to 0 day(s) 'Never Expires'."
         } else {
             Write-Host "Desired password validity period for domain $DomainId is set to expire in $DesiredPasswordValidityPeriodInDays days."

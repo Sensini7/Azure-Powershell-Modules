@@ -3,10 +3,11 @@ function Set-DomainPasswordPolicy {
     $PasswordValidityPeriodInDays = [int]$env:PASSWORD_EXPIRATION_PERIOD
     $ExecuteChange = [System.Convert]::ToBoolean($env:EXECUTE_CHANGE)
 
-    # Determine the desired password policy
-    $PasswordPolicy = if ($PasswordValidityPeriodInDays -eq 0) { "NeverExpire" } else { "Expire" }
-
-    $DesiredPasswordValidityPeriodInDays = if ($PasswordPolicy -eq "NeverExpire") { 0 } else { $PasswordValidityPeriodInDays }
+    # Convert 0 to a large number to represent "Never Expire"
+    $NeverExpireValue = 2147483647
+    if ($PasswordValidityPeriodInDays -eq 0) {
+        $PasswordValidityPeriodInDays = $NeverExpireValue
+    }
 
     $runType = if (-Not ($ExecuteChange)) { "Drift Detection Run" } else { "Deployment Run" }
     Write-Host "Current: $runType"
@@ -20,13 +21,13 @@ function Set-DomainPasswordPolicy {
         $CurrentPasswordValidityPeriodInDays = $Domain.PasswordValidityPeriodInDays
 
         # Logging the meaning of the current and desired settings
-        if ($CurrentPasswordValidityPeriodInDays -eq 0) {
+        if ($CurrentPasswordValidityPeriodInDays -eq $NeverExpireValue) {
             Write-Host "Domain $DomainId has a current password validity period of 0 day(s) 'Never Expires'."
         } else {
             Write-Host "Domain $DomainId has a current password validity period of $CurrentPasswordValidityPeriodInDays days."
         }
 
-        if ($DesiredPasswordValidityPeriodInDays -eq 0) {
+        if ($DesiredPasswordValidityPeriodInDays -eq $NeverExpireValue) {
             Write-Host "Desired password validity period for domain $DomainId is set to 0 day(s) 'Never Expires'."
         } else {
             Write-Host "Desired password validity period for domain $DomainId is set to expire in $DesiredPasswordValidityPeriodInDays days."
