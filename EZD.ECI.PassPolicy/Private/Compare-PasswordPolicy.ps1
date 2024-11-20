@@ -14,12 +14,12 @@ function Compare-DomainPasswordPolicy {
     $DriftCounter = 0
     $DriftSummary = @()
 
-    Write-Host "===================================================================================================="
+    
     Write-Host "===================================================================================================="
 
     Write-Host "CURRENT: DRIFT DETECTION RUN"
 
-    Write-Host "===================================================================================================="
+     
     Write-Host "===================================================================================================="
 
     foreach ($Domain in $DomainList) {
@@ -28,7 +28,7 @@ function Compare-DomainPasswordPolicy {
 
         # Logging the meaning of the current and desired settings
 
-        Write-Host "===================================================================================================="
+        
         Write-Host "===================================================================================================="
 
         if ($CurrentPasswordValidityPeriodInDays -eq $NeverExpireValue) {
@@ -37,7 +37,7 @@ function Compare-DomainPasswordPolicy {
             Write-Host "Domain $DomainId has a current password validity period of $CurrentPasswordValidityPeriodInDays days. It Expires In $CurrentPasswordValidityPeriodInDays "
         }
         
-        Write-Host "===================================================================================================="
+        
         Write-Host "===================================================================================================="
 
         if ($DesiredPasswordValidityPeriodInDays -eq $NeverExpireValue) {
@@ -45,7 +45,7 @@ function Compare-DomainPasswordPolicy {
         } else {
             Write-Host "Desired password validity period for domain $DomainId is set to expire in $DesiredPasswordValidityPeriodInDays days."
         }
-        Write-Host "===================================================================================================="
+        
         Write-Host "===================================================================================================="
 
         if ($CurrentPasswordValidityPeriodInDays -ne $DesiredPasswordValidityPeriodInDays) {
@@ -53,13 +53,13 @@ function Compare-DomainPasswordPolicy {
             Write-Host "The password policy for domain $DomainId is not configured as desired."
             Write-Host "Its password expiration period should be set to $DesiredPasswordValidityPeriodInDays days."
             $DriftCounter++
-            $DriftSummary += "Domain $($DomainId): CURRENT: $($CurrentPasswordValidityPeriodInDays) -> DESIRED: $($DesiredPasswordValidityPeriodInDays)"
+            $DriftSummary += "DOMAIN $($DomainId): CURRENT: $($CurrentPasswordValidityPeriodInDays) -> DESIRED: $($DesiredPasswordValidityPeriodInDays)"
         } else {
             Write-Host "Password policy for domain $DomainId is configured as desired. No change is necessary."
         }
     }
 
-    Write-Host "===================================================================================================="
+    
     Write-Host "===================================================================================================="
 
     Write-Host "DRIFT SUMMARY:"
@@ -70,11 +70,11 @@ function Compare-DomainPasswordPolicy {
     }
 
     Write-Host "===================================================================================================="
-    Write-Host "------------------- Current State of Password Policies --------------------"
+    Write-Host "------------------- CURRENT STATE OF PASSWORD POLICIES --------------------"
     Write-Host "===================================================================================================="
 
     foreach ($Domain in $DomainList) {
-        Write-Host "Domain $($Domain.Id): Password Validity Period: $($Domain.PasswordValidityPeriodInDays) days"
+        Write-Host "DOMAIN $($Domain.Id): Password Validity Period: $($Domain.PasswordValidityPeriodInDays) days"
     }
     Write-Host "===================================================================================================="
 
