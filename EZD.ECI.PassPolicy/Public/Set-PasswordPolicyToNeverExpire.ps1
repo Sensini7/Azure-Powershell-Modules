@@ -22,13 +22,13 @@ function Set-DomainPasswordPolicy {
 
         # Logging the meaning of the current and desired settings
         if ($CurrentPasswordValidityPeriodInDays -eq $NeverExpireValue) {
-            Write-Host "Domain $DomainId has a current password validity period of 0 day(s) 'Never Expires'."
+            Write-Host "Domain $DomainId has a current password validity period of $NeverExpireValue day(s) 'Never Expires'."
         } else {
             Write-Host "Domain $DomainId has a current password validity period of $CurrentPasswordValidityPeriodInDays days."
         }
 
         if ($DesiredPasswordValidityPeriodInDays -eq $NeverExpireValue) {
-            Write-Host "Desired password validity period for domain $DomainId is set to 0 day(s) 'Never Expires'."
+            Write-Host "Desired password validity period for domain $DomainId is set to $NeverExpireValue day(s) 'Never Expires'."
         } else {
             Write-Host "Desired password validity period for domain $DomainId is set to expire in $DesiredPasswordValidityPeriodInDays days."
         }
