@@ -94,5 +94,5 @@ jobs:
 
           Write-Output "Configuring Password Expiration Settings"
           # Convert EXECUTE_CHANGE to Boolean before passing to the function
-          $ExecuteChange = [System.Convert]::ToBoolean("${{ github.event.inputs.execute }}")
-          Set-DomainPasswordPolicy -PasswordValidityPeriodInDays $env:PASSWORD_EXPIRATION_PERIOD -ExecuteChange $env:EXECUTE_CHANGE
+          $ExecuteChangeBoolean = [System.Convert]::ToBoolean($env:EXECUTE_CHANGE)
+          Set-DomainPasswordPolicy -PasswordValidityPeriodInDays $env:PASSWORD_EXPIRATION_PERIOD -ExecuteChange $ExecuteChangeBoolean
