@@ -93,4 +93,6 @@ jobs:
           Import-Module .\EZD.ECI.EntraUserPasswordExpiration\EZD.ECI.PassPolicy\EZD.ECI.EntraIdUserPasswordPolicyConfig.psm1 -Force
 
           Write-Output "Configuring Password Expiration Settings"
-          Set-DomainPasswordPolicy
+          # Convert EXECUTE_CHANGE to Boolean before passing to the function
+          $ExecuteChangeBoolean = [System.Convert]::ToBoolean($env:EXECUTE_CHANGE)
+          Set-DomainPasswordPolicy -PasswordValidityPeriodInDays $env:PASSWORD_EXPIRATION_PERIOD -ExecuteChange $env:EXECUTE_CHANGE
