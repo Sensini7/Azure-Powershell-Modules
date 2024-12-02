@@ -15,12 +15,12 @@ function Compare-DomainPasswordPolicy {
     $DriftSummary = @()
 
     
-    Write-Host "===================================================================================================="
+    #Write-Host "===================================================================================================="
 
-    Write-Host "CURRENT: DRIFT DETECTION RUN"
+    #Write-Host "CURRENT: DRIFT DETECTION RUN"
 
      
-    Write-Host "===================================================================================================="
+    #Write-Host "===================================================================================================="
 
     foreach ($Domain in $DomainList) {
         $DomainId = $Domain.Id
@@ -81,7 +81,7 @@ function Compare-DomainPasswordPolicy {
     if ($DriftCounter -gt 0) {
         Write-Host "DRIFT DETECTED: THE CURRENT STATE DOES NOT ALIGN WITH THE DESIRED STATE FOR SOME DOMAINS"
     } else {
-        Write-Host "NO DRIFT DETECTED: THE CURRENT STATE DOES NOT ALIGN WITH THE DESIRED STATE FOR ALL DOMAINS"
+        Write-Host "NO DRIFT DETECTED: THE CURRENT STATE ALIGNS WITH THE DESIRED STATE FOR ALL DOMAINS"
     }
     Write-Host "===================================================================================================="
 
