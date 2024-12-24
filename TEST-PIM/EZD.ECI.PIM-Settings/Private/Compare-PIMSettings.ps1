@@ -1,190 +1,146 @@
 function Compare-PIMSettings {
-    # Define the list of highly privileged roles with their RoleDefinitionIds
+    # Define your roles with their RoleDefinitionIds
     $Roles = @(
-        @{ Name = "Global Administrator"; RoleDefinitionId = "62e90394-69f5-4237-9190-012177145e10" },
-        @{ Name = "Privileged Role Administrator"; RoleDefinitionId = "e8611ab8-c189-46e8-94e1-60213ab1f814" },
-        @{ Name = "User Administrator"; RoleDefinitionId = "fe930be7-5e62-47db-91af-98c3a49a38b1" },
-        @{ Name = "SharePoint Administrator"; RoleDefinitionId = "f28a1f50-f6e7-4571-818b-6a12f2af6b6c" },
-        @{ Name = "Exchange Administrator"; RoleDefinitionId = "29232cdf-9323-42fd-ade2-1d097af3e4de" },
-        @{ Name = "Hybrid Identity Administrator"; RoleDefinitionId = "8ac3fc64-6eca-42ea-9e69-59f4c7b60eb2" },
-        @{ Name = "Application Administrator"; RoleDefinitionId = "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3" },
-        @{ Name = "Cloud Application Administrator"; RoleDefinitionId = "158c047a-c907-4556-b7ef-446551a6b5f7" }
+        @{ Name = "Global Administrator";             RoleDefinitionId = "62e90394-69f5-4237-9190-012177145e10" },
+        @{ Name = "Privileged Role Administrator";    RoleDefinitionId = "e8611ab8-c189-46e8-94e1-60213ab1f814" },
+        @{ Name = "User Administrator";               RoleDefinitionId = "fe930be7-5e62-47db-91af-98c3a49a38b1" },
+        @{ Name = "SharePoint Administrator";         RoleDefinitionId = "f28a1f50-f6e7-4571-818b-6a12f2af6b6c" },
+        @{ Name = "Exchange Administrator";           RoleDefinitionId = "29232cdf-9323-42fd-ade2-1d097af3e4de" },
+        @{ Name = "Hybrid Identity Administrator";    RoleDefinitionId = "8ac3fc64-6eca-42ea-9e69-59f4c7b60eb2" },
+        @{ Name = "Application Administrator";        RoleDefinitionId = "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3" },
+        @{ Name = "Cloud Application Administrator";  RoleDefinitionId = "158c047a-c907-4556-b7ef-446551a6b5f7" }
     )
 
-    # Retrieve the PIM_SETTINGS environment variable
-    #$PIM_SETTINGS = [bool](Get-Content env:PIM_SETTINGS)
+    # We'll read the PIM_SETTINGS from an environment variable or from a parameter, 
+    # but if it's environment-based, do something like this:
+    # $PIM_SETTINGS = [bool]$env:PIM_SETTINGS
+    #
+    # If you want to pass it from the public function, you could do so via 
+    # param or other means. For now, let's assume it's in env:
+    #$PIM_SETTINGS = [bool]$env:PIM_SETTINGS
 
-    # Initialize drift counter and summary
+    # Initialize counters
     $DriftCounter = 0
     $DriftSummary = @()
-    $Iteration = 0
+    $Iteration    = 0
 
     foreach ($Role in $Roles) {
         Write-Host "===================================================================================================="
         Write-Host "Evaluating role: $($Role.Name)"
         Write-Host "===================================================================================================="
 
-        # Get Policy Assignment
+        # 1. Get the policy assignment for this role
         try {
             $PolicyAssignment = Get-MgPolicyRoleManagementPolicyAssignment -Filter "scopeId eq '/' and RoleDefinitionId eq '$($Role.RoleDefinitionId)' and scopeType eq 'Directory'"
         } catch {
             Write-Host "Error retrieving policy assignment for role $($Role.Name): $_"
-            $DriftSummary += "$($Role.Name) | PolicyAssignmentRetrieval | Drift Detected"
-            $DriftCounter += 1
             continue
         }
 
-        if (-Not $PolicyAssignment) {
-            Write-Host "No Policy Assignment found for role $($Role.Name)"
-            $DriftSummary += "$($Role.Name) | PolicyAssignmentMissing | Drift Detected"
-            $DriftCounter += 1
+        if (-not $PolicyAssignment) {
+            Write-Host "No Policy Assignment found for role $($Role.Name). Skipping."
             continue
         }
 
         $PolicyId = $PolicyAssignment.PolicyId
 
-        # Get Policy Rules
+        # 2. Get the policy rules for that assignment
         try {
             $PolicyRules = Get-MgPolicyRoleManagementPolicyRule -UnifiedRoleManagementPolicyId $PolicyId
         } catch {
             Write-Host "Error retrieving policy rules for policy {$PolicyId}: $_"
-            $DriftSummary += "$($Role.Name) | PolicyRulesRetrieval | Drift Detected"
-            $DriftCounter += 1
             continue
         }
 
+        # 3. Compare only the 4 specific rule IDs you care about
         foreach ($Rule in $PolicyRules) {
-            switch ($Rule."@odata.type") {
-                "#microsoft.graph.unifiedRoleManagementPolicyApprovalRule" {
-                    # Only Global Administrator has Approval Rule
-                    if ($Role.Name -ne "Global Administrator") {
-                        continue
-                    }
+            
+            switch ($Rule.Id) {
+                # 1) Approval Rule for GA requires approval
+                "Approval_EndUser_Assignment" {
+                    # Check if it's an approval rule
+                    # Usually => '@odata.type' = '#microsoft.graph.unifiedRoleManagementPolicyApprovalRule'
+                    # Settings => AdditionalProperties.Settings / or .Setting (depending on the Graph module)
+                    # Example comparison:
+                    $CurrentIsApprovalRequired = $Rule.AdditionalProperties.setting.isApprovalRequired
+                    $DesiredIsApprovalRequired = $PIM_SETTINGS
 
-                    $DesiredState = $PIM_SETTINGS
-                    $CurrentState = $Rule.Setting.isApprovalRequired
-
-                    Write-Host "Checking Approval Rule for role $($Role.Name)..."
-                    if ($CurrentState -ne $DesiredState) {
-                        Write-Host "Drift detected in Approval Rule for role $($Role.Name). Current: $CurrentState, Desired: $DesiredState"
-                        $DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Current=$CurrentState -> Desired=$DesiredState"
-                        $DriftCounter += 1
+                    if ($CurrentIsApprovalRequired -ne $DesiredIsApprovalRequired) {
+                        Write-Host "Drift in Approval_EndUser_Assignment for role $($Role.Name)."
+                        Write-Host "  Current: $CurrentIsApprovalRequired, Desired: $DesiredIsApprovalRequired"
+                        $DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Current=$CurrentIsApprovalRequired -> Desired=$DesiredIsApprovalRequired"
+                        $DriftCounter++
                     } else {
-                        Write-Host "Approval Rule for role $($Role.Name) is configured as desired."
+                        Write-Host "Approval rule for role $($Role.Name) is as desired."
                     }
                 }
-                "#microsoft.graph.unifiedRoleManagementPolicyNotificationRule" {
-                    # All roles have Notification Rules
-                    # Determine which notification rule based on Rule.Id
-                    switch ($Rule.Id) {
-                        "Notification_Admin_Admin_Eligibility" {
-                            $DesiredState = $PIM_SETTINGS
-                            $CurrentState = $Rule.isDefaultRecipientsEnabled
 
-                            Write-Host "Checking Notification_Admin_Admin_Eligibility for role $($Role.Name)..."
-                            if ($CurrentState -ne $DesiredState) {
-                                Write-Host "Drift detected in Notification_Admin_Admin_Eligibility for role $($Role.Name). Current: $CurrentState, Desired: $DesiredState"
-                                $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Current=$CurrentState -> Desired=$DesiredState"
-                                $DriftCounter += 1
-                            } else {
-                                Write-Host "Notification_Admin_Admin_Eligibility for role $($Role.Name) is configured as desired."
-                            }
-                        }
-                        "Notification_Admin_Admin_Assignment" {
-                            $DesiredState = $PIM_SETTINGS
-                            $CurrentState = $Rule.isDefaultRecipientsEnabled
+                # 2) Notification_Admin_EndUser_Assignment
+                "Notification_Admin_EndUser_Assignment" {
+                    $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+                    $DesiredIsDefaultRecipientsEnabled = $PIM_SETTINGS
 
-                            Write-Host "Checking Notification_Admin_Admin_Assignment for role $($Role.Name)..."
-                            if ($CurrentState -ne $DesiredState) {
-                                Write-Host "Drift detected in Notification_Admin_Admin_Assignment for role $($Role.Name). Current: $CurrentState, Desired: $DesiredState"
-                                $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Current=$CurrentState -> Desired=$DesiredState"
-                                $DriftCounter += 1
-                            } else {
-                                Write-Host "Notification_Admin_Admin_Assignment for role $($Role.Name) is configured as desired."
-                            }
-                        }
-                        "Notification_Admin_EndUser_Assignment" {
-                            $DesiredState = $PIM_SETTINGS
-                            $CurrentState = $Rule.isDefaultRecipientsEnabled
-
-                            Write-Host "Checking Notification_Admin_EndUser_Assignment for role $($Role.Name)..."
-                            if ($CurrentState -ne $DesiredState) {
-                                Write-Host "Drift detected in Notification_Admin_EndUser_Assignment for role $($Role.Name). Current: $CurrentState, Desired: $DesiredState"
-                                $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Current=$CurrentState -> Desired=$DesiredState"
-                                $DriftCounter += 1
-                            } else {
-                                Write-Host "Notification_Admin_EndUser_Assignment for role $($Role.Name) is configured as desired."
-                            }
-                        }
-                        default {
-                            Write-Host "Unknown Notification Rule: $($Rule.Id)"
-                        }
+                    if ($CurrentIsDefaultRecipientsEnabled -ne $DesiredIsDefaultRecipientsEnabled) {
+                        Write-Host "Drift in Notification_Admin_EndUser_Assignment for role $($Role.Name)."
+                        Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
+                        $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
+                        $DriftCounter++
+                    } else {
+                        Write-Host "Notification_Admin_EndUser_Assignment rule for role $($Role.Name) is as desired."
                     }
                 }
+
+                # 3) Notification_Admin_Admin_Eligibility
+                "Notification_Admin_Admin_Eligibility" {
+                    $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+                    $DesiredIsDefaultRecipientsEnabled = $PIM_SETTINGS
+
+                    if ($CurrentIsDefaultRecipientsEnabled -ne $DesiredIsDefaultRecipientsEnabled) {
+                        Write-Host "Drift in Notification_Admin_Admin_Eligibility for role $($Role.Name)."
+                        Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
+                        $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
+                        $DriftCounter++
+                    } else {
+                        Write-Host "Notification_Admin_Admin_Eligibility rule for role $($Role.Name) is as desired."
+                    }
+                }
+
+                # 4) Notification_Admin_Admin_Assignment
+                "Notification_Admin_Admin_Assignment" {
+                    $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+                    $DesiredIsDefaultRecipientsEnabled = $PIM_SETTINGS
+
+                    if ($CurrentIsDefaultRecipientsEnabled -ne $DesiredIsDefaultRecipientsEnabled) {
+                        Write-Host "Drift in Notification_Admin_Admin_Assignment for role $($Role.Name)."
+                        Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
+                        $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
+                        $DriftCounter++
+                    } else {
+                        Write-Host "Notification_Admin_Admin_Assignment rule for role $($Role.Name) is as desired."
+                    }
+                }
+
+                # Unknown or not relevant => skip
                 default {
-                    Write-Host "Unknown Rule Type: $($Rule.'@odata.type')"
+                    continue
                 }
             }
         }
     }
 
     Write-Host "===================================================================================================="
-
-    # Summarize Drift
+    # Summarize drift
     Write-Host "DRIFT SUMMARY:"
     if ($DriftCounter -gt 0) {
-        foreach ($Drift in $DriftSummary) {
-            Write-Host $Drift
-        }
+        $DriftSummary | ForEach-Object { Write-Host $_ }
     } else {
-        Write-Host "All PIM settings are configured as desired. No drift detected."
+        Write-Host "All PIM settings for these 4 rules are configured as desired. No drift detected."
     }
 
-    # Summarize Current State
-    Write-Host "===================================================================================================="
-    Write-Host "------------------- CURRENT STATE OF PIM SETTINGS --------------------"
-    Write-Host "===================================================================================================="
-
-    foreach ($Role in $Roles) {
-        Write-Host "Role: $($Role.Name)"
-        try {
-            $PolicyAssignment = Get-MgPolicyRoleManagementPolicyAssignment -Filter "scopeId eq '/' and RoleDefinitionId eq '$($Role.RoleDefinitionId)' and scopeType eq 'Directory'"
-            if (-Not $PolicyAssignment) {
-                Write-Host "  No Policy Assignment found."
-                continue
-            }
-
-            $PolicyId = $PolicyAssignment.PolicyId
-            $PolicyRules = Get-MgPolicyRoleManagementPolicyRule -UnifiedRoleManagementPolicyId $PolicyId
-
-            foreach ($Rule in $PolicyRules) {
-                switch ($Rule."@odata.type") {
-                    "#microsoft.graph.unifiedRoleManagementPolicyApprovalRule" {
-                        Write-Host "  Rule: $($Rule.Id)"
-                        Write-Host "    isApprovalRequired: $($Rule.Setting.isApprovalRequired)"
-                    }
-                    "#microsoft.graph.unifiedRoleManagementPolicyNotificationRule" {
-                        Write-Host "  Rule: $($Rule.Id)"
-                        Write-Host "    isDefaultRecipientsEnabled: $($Rule.isDefaultRecipientsEnabled)"
-                    }
-                    default {
-                        Write-Host "  Unknown Rule Type: $($Rule.'@odata.type')"
-                    }
-                }
-            }
-        } catch {
-            Write-Host "  Error retrieving settings for role $($Role.Name): $_"
-        }
+    # Return the results
+    return @{
+        "Iteration"     = ($Iteration + 1)
+        "DriftCounter"  = $DriftCounter
+        "DriftSummary"  = $DriftSummary
     }
-
-    Write-Host "===================================================================================================="
-    if ($DriftCounter -gt 0) { 
-        Write-Host "DRIFT DETECTED: CURRENT PIM SETTINGS DO NOT ALIGN WITH DESIRED CONFIGURATIONS"
-    }
-    else {
-        Write-Host "NO DRIFT DETECTED: CURRENT PIM SETTINGS ALIGN WITH DESIRED CONFIGURATIONS"
-    }
-    Write-Host "===================================================================================================="
-
-    return @{ "Iteration" = ($Iteration + 1); "DriftCounter" = $DriftCounter; "DriftSummary" = $DriftSummary }
 }
