@@ -24,6 +24,7 @@ function Compare-PIMSettings {
     $DriftSummary = @()
     $Iteration    = 0
 
+    # Compile the current state
     foreach ($Role in $Roles) {
         Write-Host "===================================================================================================="
         Write-Host "Evaluating role: $($Role.Name)"
@@ -52,12 +53,19 @@ function Compare-PIMSettings {
             continue
         }
 
+
+        # Calculate the drift of the current state from the desired state
         # 3. Compare only the 4 specific rule IDs you care about
         foreach ($Rule in $PolicyRules) {
             
             switch ($Rule.Id) {
                 # 1) Approval Rule for GA requires approval
                 "Approval_EndUser_Assignment" {
+
+                    if ($Role.Name -ne "Global Administrator") {
+                        # Skip evaluating Approval rule for non-Global Admin roles
+                        continue
+                    }
                     # Check if it's an approval rule
                     # Usually => '@odata.type' = '#microsoft.graph.unifiedRoleManagementPolicyApprovalRule'
                     # Settings => AdditionalProperties.Settings / or .Setting (depending on the Graph module)
@@ -69,7 +77,7 @@ function Compare-PIMSettings {
                         Write-Host "Drift in Approval_EndUser_Assignment for role $($Role.Name)."
                         Write-Host "  Current: $CurrentIsApprovalRequired, Desired: $DesiredIsApprovalRequired"
                         $DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Current=$CurrentIsApprovalRequired -> Desired=$DesiredIsApprovalRequired"
-                        $DriftCounter++
+                        $DriftCounter += 1
                     } else {
                         Write-Host "Approval rule for role $($Role.Name) is as desired."
                     }
@@ -84,7 +92,7 @@ function Compare-PIMSettings {
                         Write-Host "Drift in Notification_Admin_EndUser_Assignment for role $($Role.Name)."
                         Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
                         $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
-                        $DriftCounter++
+                        $DriftCounter += 1
                     } else {
                         Write-Host "Notification_Admin_EndUser_Assignment rule for role $($Role.Name) is as desired."
                     }
@@ -99,7 +107,7 @@ function Compare-PIMSettings {
                         Write-Host "Drift in Notification_Admin_Admin_Eligibility for role $($Role.Name)."
                         Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
                         $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
-                        $DriftCounter++
+                        $DriftCounter += 1
                     } else {
                         Write-Host "Notification_Admin_Admin_Eligibility rule for role $($Role.Name) is as desired."
                     }
@@ -114,7 +122,7 @@ function Compare-PIMSettings {
                         Write-Host "Drift in Notification_Admin_Admin_Assignment for role $($Role.Name)."
                         Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
                         $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
-                        $DriftCounter++
+                        $DriftCounter += 1
                     } else {
                         Write-Host "Notification_Admin_Admin_Assignment rule for role $($Role.Name) is as desired."
                     }
@@ -130,6 +138,7 @@ function Compare-PIMSettings {
 
     Write-Host "===================================================================================================="
     # Summarize drift
+    #$DriftSummary = @()
     Write-Host "DRIFT SUMMARY:"
     if ($DriftCounter -gt 0) {
         $DriftSummary | ForEach-Object { Write-Host $_ }
