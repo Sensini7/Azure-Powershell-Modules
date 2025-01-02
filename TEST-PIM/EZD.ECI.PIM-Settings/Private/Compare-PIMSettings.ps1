@@ -213,48 +213,53 @@ if ($DriftCounter -gt 0) {
 
 else {
 
-    foreach ($Rule in $PolicyRules) {
-        switch ($Rule.Id) {
+    foreach ($Role in $Roles) {
+        $PolicyRules = $AllPolicyRules[$Role.Name]
+        if (-not $PolicyRules) {continue}     
 
-            # 1) Approval Rule for GA requires approval
-            "Approval_EndUser_Assignment" {
+        foreach ($Rule in $PolicyRules) {
+            switch ($Rule.Id) {
 
-                if ($Role.Name -ne "Global Administrator") {
-                    # Skip evaluating Approval rule for non-Global Admin roles
-                    continue
+                # 1) Approval Rule for GA requires approval
+                "Approval_EndUser_Assignment" {
+
+                    if ($Role.Name -ne "Global Administrator") {
+                        # Skip evaluating Approval rule for non-Global Admin roles
+                        continue
+                    }
+
+                    $CurrentIsApprovalRequired = $Rule.AdditionalProperties.setting.isApprovalRequired
+                    $DesiredIsApprovalRequired = $DesiredState 
+
+                    $DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Setting is configured as desired. No change is necessary."
                 }
 
-                $CurrentIsApprovalRequired = $Rule.AdditionalProperties.setting.isApprovalRequired
-                $DesiredIsApprovalRequired = $DesiredState 
+                # 2) Notification_Admin_EndUser_Assignment
+                "Notification_Admin_EndUser_Assignment" {
+                    $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+                    $DesiredIsDefaultRecipientsEnabled = $DesiredState
 
-                $DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Setting is configured as desired. No change is necessary."
+                    $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Setting is configured as desired. No change is necessary."
+                }     
+
+                # 3) Notification_Admin_Admin_Eligibility
+                "Notification_Admin_Admin_Eligibility" {
+                    $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+                    $DesiredIsDefaultRecipientsEnabled = $DesiredState
+
+                    $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Setting is configured as desired. No change is necessary."
+                }
+
+                # 4) Notification_Admin_Admin_Assignment
+                "Notification_Admin_Admin_Assignment" {
+                    $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+                    $DesiredIsDefaultRecipientsEnabled = $DesiredState
+
+                    $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Setting is configured as desired. No change is necessary."
+                }    
             }
-
-            # 2) Notification_Admin_EndUser_Assignment
-            "Notification_Admin_EndUser_Assignment" {
-                $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
-                $DesiredIsDefaultRecipientsEnabled = $DesiredState
-
-                $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Setting is configured as desired. No change is necessary."
-            }     
-
-            # 3) Notification_Admin_Admin_Eligibility
-            "Notification_Admin_Admin_Eligibility" {
-                $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
-                $DesiredIsDefaultRecipientsEnabled = $DesiredState
-
-                $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Setting is configured as desired. No change is necessary."
-            }
-
-            # 4) Notification_Admin_Admin_Assignment
-            "Notification_Admin_Admin_Assignment" {
-                $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
-                $DesiredIsDefaultRecipientsEnabled = $DesiredState
-
-                $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Setting is configured as desired. No change is necessary."
-            }    
         }
-    }    
+    }        
 }
 
 $DriftSummary | ForEach-Object { Write-Host $_ }

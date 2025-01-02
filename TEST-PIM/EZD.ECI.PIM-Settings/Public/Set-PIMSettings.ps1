@@ -16,7 +16,7 @@ function Set-PIMSettings {
         @{ Name = "Cloud Application Administrator";  RoleDefinitionId = "158c047a-c907-4556-b7ef-446551a6b5f7" }
     )
 
-    # Define the desired password validity period in the parent scope
+    # Define the desired PIM Settings in the parent scope
     $DesiredState = $PIM_SETTINGS
     
     Write-Host "===================================================================================================="
