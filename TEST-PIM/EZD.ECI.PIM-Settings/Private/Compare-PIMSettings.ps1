@@ -10,6 +10,8 @@ function Compare-PIMSettings {
         @{ Name = "Application Administrator";        RoleDefinitionId = "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3" },
         @{ Name = "Cloud Application Administrator";  RoleDefinitionId = "158c047a-c907-4556-b7ef-446551a6b5f7" }
     )
+    
+    $AllPolicyRules = @{}  # To store rules for all roles
 
     # We'll read the PIM_SETTINGS from an environment variable or from a parameter, 
     # but if it's environment-based, do something like this:
@@ -21,8 +23,8 @@ function Compare-PIMSettings {
 
     # Initialize counters
     $DriftCounter = 0
-    $DriftSummary = @()
-    $Iteration    = 0
+    #$DriftSummary = @()
+    #$Iteration    = 0
 
     # Compile the current state
     foreach ($Role in $Roles) {
@@ -53,9 +55,12 @@ function Compare-PIMSettings {
             continue
         }
 
+        $AllPolicyRules[$Role.Name] = $PolicyRules
+
 
         # Calculate the drift of the current state from the desired state
         # 3. Compare only the 4 specific rule IDs you care about
+        #$DriftCounter = 0
         foreach ($Rule in $PolicyRules) {
             
             switch ($Rule.Id) {
@@ -71,60 +76,68 @@ function Compare-PIMSettings {
                     # Settings => AdditionalProperties.Settings / or .Setting (depending on the Graph module)
                     # Example comparison:
                     $CurrentIsApprovalRequired = $Rule.AdditionalProperties.setting.isApprovalRequired
-                    $DesiredIsApprovalRequired = $PIM_SETTINGS
+                    $DesiredIsApprovalRequired = $DesiredState
 
                     if ($CurrentIsApprovalRequired -ne $DesiredIsApprovalRequired) {
-                        Write-Host "Drift in Approval_EndUser_Assignment for role $($Role.Name)."
-                        Write-Host "  Current: $CurrentIsApprovalRequired, Desired: $DesiredIsApprovalRequired"
-                        $DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Current=$CurrentIsApprovalRequired -> Desired=$DesiredIsApprovalRequired"
+                        Write-Host "The current Approval setting for Approval_EndUser_Assignment rule is $CurrentIsApprovalRequired for role $($Role.Name)."
+                        Write-Host "The Approval setting of the Approval_EndUser_Assignment policy rule for $($Role.Name) is not configured as desired."
+                        Write-Host "Its Approval requirement setting should be set to $DesiredState "
+                        #Write-Host "  Current: $CurrentIsApprovalRequired, Desired: $DesiredIsApprovalRequired"
+                        #$DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Current=$CurrentIsApprovalRequired -> Desired=$DesiredIsApprovalRequired"
                         $DriftCounter += 1
                     } else {
-                        Write-Host "Approval rule for role $($Role.Name) is as desired."
+                        Write-Host "The rule to require Approval upon activation for role $($Role.Name) is as desired."
                     }
                 }
 
                 # 2) Notification_Admin_EndUser_Assignment
                 "Notification_Admin_EndUser_Assignment" {
                     $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
-                    $DesiredIsDefaultRecipientsEnabled = $PIM_SETTINGS
+                    $DesiredIsDefaultRecipientsEnabled = $DesiredState
 
                     if ($CurrentIsDefaultRecipientsEnabled -ne $DesiredIsDefaultRecipientsEnabled) {
-                        Write-Host "Drift in Notification_Admin_EndUser_Assignment for role $($Role.Name)."
-                        Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
-                        $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
+                        Write-Host "The current alert setting for Notification_Admin_EndUser_Assignment rule is $CurrentIsApprovalRequired for role $($Role.Name)."
+                        Write-Host "The alert setting for Notification_Admin_EndUser_Assignment policy rule for $($Role.Name) is not configured as desired."
+                        Write-Host "Its alert setting should be set to $DesiredState "
+                        #Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
+                        #$DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
                         $DriftCounter += 1
                     } else {
-                        Write-Host "Notification_Admin_EndUser_Assignment rule for role $($Role.Name) is as desired."
+                        Write-Host "The rule to send notifications when eligible members activate the $($Role.Name) role is as desired."
                     }
                 }
 
                 # 3) Notification_Admin_Admin_Eligibility
                 "Notification_Admin_Admin_Eligibility" {
                     $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
-                    $DesiredIsDefaultRecipientsEnabled = $PIM_SETTINGS
+                    $DesiredIsDefaultRecipientsEnabled = $DesiredState
 
                     if ($CurrentIsDefaultRecipientsEnabled -ne $DesiredIsDefaultRecipientsEnabled) {
-                        Write-Host "Drift in Notification_Admin_Admin_Eligibility for role $($Role.Name)."
-                        Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
-                        $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
+                        Write-Host "The current alert setting for Notification_Admin_Admin_Eligibility rule is $CurrentIsApprovalRequired for role $($Role.Name)."
+                        Write-Host "The alert setting for Notification_Admin_Admin_Eligibility policy rule for $($Role.Name) is not configured as desired."
+                        Write-Host "Its alert setting should be set to $DesiredState "
+                        #Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
+                        #$DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
                         $DriftCounter += 1
                     } else {
-                        Write-Host "Notification_Admin_Admin_Eligibility rule for role $($Role.Name) is as desired."
+                        Write-Host "The rule to send notifications when members are assigned as eligible to the $($Role.Name) role is as desired."
                     }
                 }
 
                 # 4) Notification_Admin_Admin_Assignment
                 "Notification_Admin_Admin_Assignment" {
                     $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
-                    $DesiredIsDefaultRecipientsEnabled = $PIM_SETTINGS
+                    $DesiredIsDefaultRecipientsEnabled = $DesiredState
 
                     if ($CurrentIsDefaultRecipientsEnabled -ne $DesiredIsDefaultRecipientsEnabled) {
-                        Write-Host "Drift in Notification_Admin_Admin_Assignment for role $($Role.Name)."
-                        Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
-                        $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
+                        Write-Host "The current alert setting for Notification_Admin_Admin_Assignment rule is $CurrentIsApprovalRequired for role $($Role.Name)."
+                        Write-Host "The alert setting for Notification_Admin_Admin_Assignment policy rule for $($Role.Name) is not configured as desired."
+                        Write-Host "Its alert setting should be set to $DesiredState "
+                        #Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
+                        #$DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
                         $DriftCounter += 1
                     } else {
-                        Write-Host "Notification_Admin_Admin_Assignment rule for role $($Role.Name) is as desired."
+                        Write-Host "The rule to send notifications when members are assigned as active to the $($Role.Name) role is as desired."
                     }
                 }
 
@@ -137,19 +150,175 @@ function Compare-PIMSettings {
     }
 
     Write-Host "===================================================================================================="
-    # Summarize drift
-    #$DriftSummary = @()
-    Write-Host "DRIFT SUMMARY:"
-    if ($DriftCounter -gt 0) {
-        $DriftSummary | ForEach-Object { Write-Host $_ }
-    } else {
-        Write-Host "All PIM settings for these 4 rules are configured as desired. No drift detected."
-    }
 
-    # Return the results
-    return @{
-        "Iteration"     = ($Iteration + 1)
-        "DriftCounter"  = $DriftCounter
-        "DriftSummary"  = $DriftSummary
+# Summarize drift
+$DriftSummary = @()
+Write-Host "DRIFT SUMMARY:"
+if ($DriftCounter -gt 0) {
+    foreach ($Role in $Roles) {
+        $PolicyRules = $AllPolicyRules[$Role.Name]
+        if (-not $PolicyRules) {continue} 
+        
+        foreach ($Rule in $PolicyRules) {
+            switch ($Rule.Id) {
+                # 1) Approval Rule for GA requires approval
+                "Approval_EndUser_Assignment" {
+
+                    if ($Role.Name -ne "Global Administrator") {
+                        # Skip evaluating Approval rule for non-Global Admin roles
+                        continue
+                    }
+
+                    $CurrentIsApprovalRequired = $Rule.AdditionalProperties.setting.isApprovalRequired
+                    $DesiredIsApprovalRequired = $DesiredState 
+
+                    if ($CurrentIsApprovalRequired -ne $DesiredIsApprovalRequired) {
+                        $DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Current=$CurrentIsApprovalRequired -> Desired=$DesiredIsApprovalRequired"
+                    }
+                } 
+
+                # 2) Notification_Admin_EndUser_Assignment
+                "Notification_Admin_EndUser_Assignment" {
+                    $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+                    $DesiredIsDefaultRecipientsEnabled = $DesiredState
+
+                    if ($CurrentIsDefaultRecipientsEnabled -ne $DesiredIsDefaultRecipientsEnabled) {
+                        $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
+                    }  
+                } 
+
+                # 3) Notification_Admin_Admin_Eligibility
+                "Notification_Admin_Admin_Eligibility" {
+                    $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+                    $DesiredIsDefaultRecipientsEnabled = $DesiredState
+
+                    if ($CurrentIsDefaultRecipientsEnabled -ne $DesiredIsDefaultRecipientsEnabled) {
+                        $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
+                    }
+                }
+
+                # 4) Notification_Admin_Admin_Assignment
+                "Notification_Admin_Admin_Assignment" {
+                    $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+                    $DesiredIsDefaultRecipientsEnabled = $DesiredState
+
+                    if ($CurrentIsDefaultRecipientsEnabled -ne $DesiredIsDefaultRecipientsEnabled) {
+                        $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
+                    }
+                }                
+            }
+        }
+    }    
+} 
+
+else {
+
+    foreach ($Rule in $PolicyRules) {
+        switch ($Rule.Id) {
+
+            # 1) Approval Rule for GA requires approval
+            "Approval_EndUser_Assignment" {
+
+                if ($Role.Name -ne "Global Administrator") {
+                    # Skip evaluating Approval rule for non-Global Admin roles
+                    continue
+                }
+
+                $CurrentIsApprovalRequired = $Rule.AdditionalProperties.setting.isApprovalRequired
+                $DesiredIsApprovalRequired = $DesiredState 
+
+                $DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Setting is configured as desired. No change is necessary."
+            }
+
+            # 2) Notification_Admin_EndUser_Assignment
+            "Notification_Admin_EndUser_Assignment" {
+                $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+                $DesiredIsDefaultRecipientsEnabled = $DesiredState
+
+                $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Setting is configured as desired. No change is necessary."
+            }     
+
+            # 3) Notification_Admin_Admin_Eligibility
+            "Notification_Admin_Admin_Eligibility" {
+                $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+                $DesiredIsDefaultRecipientsEnabled = $DesiredState
+
+                $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Setting is configured as desired. No change is necessary."
+            }
+
+            # 4) Notification_Admin_Admin_Assignment
+            "Notification_Admin_Admin_Assignment" {
+                $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+                $DesiredIsDefaultRecipientsEnabled = $DesiredState
+
+                $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Setting is configured as desired. No change is necessary."
+            }    
+        }
+    }    
+}
+
+$DriftSummary | ForEach-Object { Write-Host $_ }
+
+    # Summarize Current State
+    Write-Host "====================================================================================================" 
+    Write-Host "------------------- CURRENT STATE OF PASSWORD POLICIES --------------------"
+    Write-Host "===================================================================================================="
+    
+    if($Iteration -gt 0) {
+        Write-Host "------------- Current State of Password expiration policy After Changes ---------------"
     }
+    else {
+        Write-Host "------------- Current State of Password expiration policy Before Changes --------------"
+    } 
+    Write-Host "===================================================================================================="
+
+    foreach ($Role in $Roles) {
+        Write-Host "Role: $($Role.Name)"
+        $PolicyRules = $AllPolicyRules[$Role.Name]
+        if (-not $PolicyRules) {continue}
+    
+        foreach ($Rule in $PolicyRules) {
+            switch ($Rule.Id) {
+
+                # 1) Approval Rule for GA requires approval
+                "Approval_EndUser_Assignment" {
+
+                    if ($Role.Name -ne "Global Administrator") {
+                        # Skip evaluating Approval rule for non-Global Admin roles
+                        continue
+                    }
+                    Write-Host "Approval_EndUser_Assignment: Approval Configuration: $($Rule.AdditionalProperties.setting.isApprovalRequired)"
+                }
+                
+                # 2) Notification_Admin_EndUser_Assignment
+                "Notification_Admin_EndUser_Assignment" {
+                    Write-Host "Notification_Admin_EndUser_Assignment: Alert Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
+                }
+
+                # 3) Notification_Admin_Admin_Eligibility
+                "Notification_Admin_Admin_Eligibility" {
+                    Write-Host "Notification_Admin_Admin_Eligibility: Alert Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
+                }
+
+                # 4) Notification_Admin_Admin_Assignment
+                "Notification_Admin_Admin_Assignment" {
+                    Write-Host "Notification_Admin_Admin_Assignment: Alert Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
+                }               
+            }
+        }
+    }    
+
+    $Iteration += 1
+
+    Write-Host "===================================================================================================="
+    if ($DriftCounter -gt 0) { 
+        Write-Host "DRIFT DETECTED: THE CURRENT STATE DOES NOT ALIGN WITH THE DESIRED STATE FOR SOME RULES OF SOME HIGHLY PRIVILEGED ROLES"
+    }
+    else {
+        Write-Host "NO DRIFT DETECTED: THE CURRENT STATE ALIGNS WITH THE DESIRED STATE FOR ALL HIGHLY PRIVILEGED ROLES"
+    }
+    Write-Host "===================================================================================================="
+
+    return @{ "Iteration" = $Iteration; "DriftCounter" = $DriftCounter; "DriftSummary" = $DriftSummary }
+
 }
