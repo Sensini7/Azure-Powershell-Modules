@@ -118,9 +118,9 @@ function Set-PIMSettings {
                             "@odata.type"                = "#microsoft.graph.unifiedRoleManagementPolicyNotificationRule"
                             id                           = $Rule.Id
                             target                       = $Rule.Target
-                            notificationType             = $Rule.notificationType
-                            recipientType                = $Rule.recipientType
-                            notificationLevel            = $Rule.notificationLevel
+                            notificationType             = "Email" #$Rule.notificationType
+                            recipientType                = "Admin" #$Rule.recipientType
+                            notificationLevel            = "All" #$Rule.notificationLevel
                             isDefaultRecipientsEnabled   = [bool]$PIM_SETTINGS
                             notificationRecipients       = $Rule.notificationRecipients
                         }
@@ -131,9 +131,9 @@ function Set-PIMSettings {
                             "@odata.type"                = "#microsoft.graph.unifiedRoleManagementPolicyNotificationRule"
                             id                           = $Rule.Id
                             target                       = $Rule.Target
-                            notificationType             = $Rule.notificationType
-                            recipientType                = $Rule.recipientType
-                            notificationLevel            = $Rule.notificationLevel
+                            notificationType             = "Email" #$Rule.notificationType
+                            recipientType                = "Admin" #$Rule.recipientType
+                            notificationLevel            = "All" #$Rule.notificationLevel
                             isDefaultRecipientsEnabled   = [bool]$PIM_SETTINGS
                             notificationRecipients       = $Rule.notificationRecipients
                         }
@@ -144,9 +144,9 @@ function Set-PIMSettings {
                             "@odata.type"                = "#microsoft.graph.unifiedRoleManagementPolicyNotificationRule"
                             id                           = $Rule.Id
                             target                       = $Rule.Target
-                            notificationType             = $Rule.notificationType
-                            recipientType                = $Rule.recipientType
-                            notificationLevel            = $Rule.notificationLevel
+                            notificationType             = "Email" #$Rule.notificationType
+                            recipientType                = "Admin" #$Rule.recipientType
+                            notificationLevel            = "All" #$Rule.notificationLevel
                             isDefaultRecipientsEnabled   = [bool]$PIM_SETTINGS
                             notificationRecipients       = $Rule.notificationRecipients
                         }

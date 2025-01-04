@@ -266,14 +266,14 @@ $DriftSummary | ForEach-Object { Write-Host $_ }
 
     # Summarize Current State
     Write-Host "====================================================================================================" 
-    Write-Host "------------------- CURRENT STATE OF PASSWORD POLICIES --------------------"
+    Write-Host "------------------- CURRENT STATE OF PIM SETTINGS FOR HIGHLY PRIVILEGED ROLES --------------------"
     Write-Host "===================================================================================================="
     
     if($Iteration -gt 0) {
-        Write-Host "------------- Current State of Password expiration policy After Changes ---------------"
+        Write-Host "------------- Current State of Pim Settings For Highly Privileged Roles After Changes ---------------"
     }
     else {
-        Write-Host "------------- Current State of Password expiration policy Before Changes --------------"
+        Write-Host "------------- Current State of Pim Settings For Highly Privileged Roles Before Changes --------------"
     } 
     Write-Host "===================================================================================================="
 
