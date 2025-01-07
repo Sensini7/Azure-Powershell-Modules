@@ -1,0 +1,94 @@
+name: "Entra: Set PIM Settings"
+
+on:
+  #pull-request:
+  #  types: [opened, synchronize, reopened]
+  #  paths:
+  #    - '.github/workflows/ps-set-pim-settings.yml'
+  ## checkov:skip=CKV_GHA_7:Workflow_dispatch should not take any inputs.
+  workflow_dispatch:
+    inputs:
+      environment:
+        required: true
+        type: choice
+        description: Environment to deploy to
+        options:
+          - sumvita-gov
+          - sumvita
+          - kalvico
+      execute:
+        required: true
+        type: boolean
+        description: Execute Change
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  IS_AZURE_GOV: ${{ vars.IS_AZURE_GOV }}
+  ExecuteChange: "${{ inputs.execute || 'false' }}"
+  PIM_SETTINGS: "${{ vars.PIM_SETTINGS }}"  # Ensure this is set as a boolean in the repo variables
+
+jobs:
+  run-powershell-script:
+    environment: ${{ inputs.environment || vars.MANAGEMENT_TENANT_NAME }}
+    name: "PIM Settings Configuration"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PIMSettings module
+        uses: actions/checkout@v4
+        with:
+          repository: 'Sensini7/Azure-User-Password-Policy'
+          ref: 'Sensini/PIMSettings'  # Update to the latest version
+          path: 'EZD.ECI.PIMSettings'
+          sparse-checkout: 'EZD.ECI.PIMSettings'
+          ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
+
+      - name: Checkout common module
+        uses: actions/checkout@v4
+        with:
+          repository: 'Sensini7/Azure-User-Password-Policy'
+          ref: 'Sensini/PIMSettings'  # Update to the latest version
+          path: 'EZD.ECI.Common'
+          sparse-checkout: 'EZD.ECI.Common'
+          ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
+
+      - name: Authenticate and Configure PIM Settings
+        shell: pwsh
+        run: |
+          # Install And Import Modules
+          Install-Module -Name "Microsoft.Graph.Identity.SignIns" -Force
+          Import-Module .\EZD.ECI.Common\EZD.ECI.Common\EZD.ECI.Common.psd1 -Force
+
+          # Connect To Azure
+          if ("${{ vars.IS_AZURE_GOV }}" -eq "true") {
+            az cloud set --name AzureUSGovernment
+            $GRAPH_ENVIRONMENT = 'USGov'
+          } else {
+            $GRAPH_ENVIRONMENT = 'Global'
+          }
+          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+          $AccessToken = (az account get-access-token --resource-type ms-graph | ConvertFrom-Json).accessToken
+          
+          Write-Output "Connecting to MgGraph..."
+          $SecureAccessToken = ConvertTo-SecureString -String $AccessToken -AsPlainText -Force
+          Connect-MgGraph -AccessToken $SecureAccessToken -NoWelcome -Environment $GRAPH_ENVIRONMENT
+
+          Import-Module .\EZD.ECI.PIMSettings\EZD.ECI.PIMSettings\EZD.ECI.PIMSettings.psd1 -Force
+
+          ## Must cast into booleans since github actions passes inputs explicitly as a string.
+          ## This is the behaviour regardless if they are labeled as boolean workflow inputs.
+          Write-Output "Configuring Password Expiration Settings"
+
+          # Convert EXECUTE_CHANGE to Boolean before passing to the function
+          $ExecuteChange = [System.Convert]::ToBoolean($env:ExecuteChange)
+
+          Write-Output "Configuring PIM Settings"
+          # Set the PIM settings
+          Set-PIMSettings -PIM_SETTINGS env: $PIM_SETTINGS -ExecuteChange $ExecuteChange
