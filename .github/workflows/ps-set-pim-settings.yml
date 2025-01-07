@@ -13,9 +13,9 @@ on:
         type: choice
         description: Environment to deploy to
         options:
-          - production
-          - staging
-          - development
+          - sumvita-gov
+          - sumvita
+          - kalvico
       execute:
         required: true
         type: boolean
