@@ -48,7 +48,7 @@ jobs:
         with:
           repository: 'Sensini7/Azure-User-Password-Policy'
           ref: 'Sensini/PIMSettings'  # Update to the latest version
-          path: 'TEST-PIM/EZD.ECI.PIMSettings'
+          path: 'EZD.ECI.PIMSettings'
           sparse-checkout: 'EZD.ECI.PIMSettings'
           ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
 
