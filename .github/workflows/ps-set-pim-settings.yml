@@ -86,7 +86,7 @@ jobs:
           Install-Module -Name "Microsoft.Graph.Identity.SignIns" -Force
           Import-Module .\EZD.ECI.Common\EZD.ECI.Common\EZD.ECI.Common.psd1 -Force
 
-          Import-Module .\EZD.ECI.PIMSettings\EZD.ECI.PIMSettings\EZD.ECI.PIMSettings.psd1 -Force
+          Import-Module .\EZD.ECI.PIMSettings\EZD.ECI.PIM-Settings\EZD.ECI.PIMSettings.psd1 -Force
 
           ## Must cast into booleans since github actions passes inputs explicitly as a string.
           ## This is the behaviour regardless if they are labeled as boolean workflow inputs.
