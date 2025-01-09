@@ -33,7 +33,9 @@ env:
   AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
   IS_AZURE_GOV: ${{ vars.IS_AZURE_GOV }}
   ExecuteChange: "${{ inputs.execute || 'false' }}"
-  PIM_SETTINGS: "${{ vars.PIM_SETTINGS }}"  # Ensure this is set as a boolean in the repo variables
+
+  APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS: "${{ vars.APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS }}"  # Ensure this is set as a boolean in the repo variables
+  ADDITIONAL_NOTIFICATION_RECIPIENTS: "${{ vars.ADDITIONAL_NOTIFICATION_RECIPIENTS }}"  # Add this line
 
 jobs:
   run-powershell-script:
@@ -44,19 +46,19 @@ jobs:
       - name: Checkout PIMSettings module
         uses: actions/checkout@v4
         with:
-          repository: 'EasyDynamics/EntraID-800-53-Terraform-Modules'
+          repository: 'Sensini7/Azure-User-Password-Policy'
           ref: 'Sensini/PIMSettings'  # Update to the latest version
-          path: 'EZD.ECI.PIMSettings'
-          sparse-checkout: 'powershell-modules/EZD.ECI.PIMSettings'
+          path: 'TEST-PIM/EZD.ECI.PIMSettings'
+          sparse-checkout: 'EZD.ECI.PIMSettings'
           ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
 
       - name: Checkout common module
         uses: actions/checkout@v4
         with:
-          repository: 'EasyDynamics/EntraID-800-53-Terraform-Modules'
+          repository: 'Sensini7/Azure-User-Password-Policy'
           ref: 'Sensini/PIMSettings'  # Update to the latest version
           path: 'EZD.ECI.Common'
-          sparse-checkout: 'powershell-modules/EZD.ECI.Common'
+          sparse-checkout: 'EZD.ECI.Common'
           ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
 
       - name: Authenticate and Configure PIM Settings
@@ -64,7 +66,7 @@ jobs:
         run: |
           # Install And Import Modules
           Install-Module -Name "Microsoft.Graph.Identity.SignIns" -Force
-          Import-Module .\EZD.ECI.Common\powershell-modules\EZD.ECI.Common\EZD.ECI.Common.psd1 -Force
+          Import-Module .\EZD.ECI.Common\EZD.ECI.Common\EZD.ECI.Common.psd1 -Force
 
           # Connect To Azure
           if ("${{ vars.IS_AZURE_GOV }}" -eq "true") {
@@ -80,7 +82,7 @@ jobs:
           $SecureAccessToken = ConvertTo-SecureString -String $AccessToken -AsPlainText -Force
           Connect-MgGraph -AccessToken $SecureAccessToken -NoWelcome -Environment $GRAPH_ENVIRONMENT
 
-          Import-Module .\EZD.ECI.PIMSettings\powershell-modules\EZD.ECI.PIMSettings\EZD.ECI.PIMSettings.psd1 -Force
+          Import-Module .\EZD.ECI.PIMSettings\EZD.ECI.PIMSettings\EZD.ECI.PIMSettings.psd1 -Force
 
           ## Must cast into booleans since github actions passes inputs explicitly as a string.
           ## This is the behaviour regardless if they are labeled as boolean workflow inputs.
@@ -89,6 +91,15 @@ jobs:
           # Convert EXECUTE_CHANGE to Boolean before passing to the function
           $ExecuteChange = [System.Convert]::ToBoolean($env:ExecuteChange)
 
+          $ApprovalAndDefaultRecipientSettings = [System.Convert]::ToBoolean($env:APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS)
+
+          # Convert comma-separated string to array (if not empty)
+          $AdditionalRecipients = @()
+          if (![string]::IsNullOrWhiteSpace($env:ADDITIONAL_NOTIFICATION_RECIPIENTS)) {
+              $AdditionalRecipients = $env:ADDITIONAL_NOTIFICATION_RECIPIENTS.Split(',').Trim()
+          }
+
           Write-Output "Configuring PIM Settings"
           # Set the PIM settings
-          Set-PIMSettings -PIM_SETTINGS env: $PIM_SETTINGS -ExecuteChange $ExecuteChange
+          Set-PIMSettings -APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS $ApprovalAndDefaultRecipientSettings -AdditionalNotificationRecipients $AdditionalRecipients -ExecuteChange $ExecuteChange
+
