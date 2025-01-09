@@ -76,12 +76,16 @@ function Compare-PIMSettings {
                     # Settings => AdditionalProperties.Settings / or .Setting (depending on the Graph module)
                     # Example comparison:
                     $CurrentIsApprovalRequired = $Rule.AdditionalProperties.setting.isApprovalRequired
+
                     $DesiredIsApprovalRequired = $DesiredApprovalAndDefaultRecipientState
+
 
                     if ($CurrentIsApprovalRequired -ne $DesiredIsApprovalRequired) {
                         Write-Host "The current Approval setting for Approval_EndUser_Assignment rule is $CurrentIsApprovalRequired for role $($Role.Name)."
                         Write-Host "The Approval setting of the Approval_EndUser_Assignment policy rule for $($Role.Name) is not configured as desired."
+
                         Write-Host "Its Approval requirement setting should be set to $DesiredApprovalAndDefaultRecipientState "
+
                         #Write-Host "  Current: $CurrentIsApprovalRequired, Desired: $DesiredIsApprovalRequired"
                         #$DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Current=$CurrentIsApprovalRequired -> Desired=$DesiredIsApprovalRequired"
                         $DriftCounter += 1
@@ -93,6 +97,7 @@ function Compare-PIMSettings {
                 # 2) Notification_Admin_EndUser_Assignment
                 "Notification_Admin_EndUser_Assignment" {
                     $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+
                     $CurrentAdditionalRecipients = $Rule.AdditionalProperties.notificationRecipients 
                     $DesiredIsDefaultRecipientsEnabled = $DesiredApprovalAndDefaultRecipientState
 
@@ -114,17 +119,21 @@ function Compare-PIMSettings {
                         Write-Host "The Additional Recipients for Notification_Admin_EndUser_Assignment policy rule for $($Role.Name) is not configured as desired."
                         Write-Host "Its Additional Recipients should be set to: [$($DesiredAdditionalNotificationRecipientState -join ',')]"
                     
+
                         #Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
                         #$DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
                         $DriftCounter += 1
                     } else {
+
                         Write-Host "Sending notifications to additional recipients for Notification_Admin_EndUser_Assignment rule when eligible members activate the $($Role.Name) role is as desired."
+
                     }
                 }
 
                 # 3) Notification_Admin_Admin_Eligibility
                 "Notification_Admin_Admin_Eligibility" {
                     $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+
                     $CurrentAdditionalRecipients = $Rule.AdditionalProperties.notificationRecipients 
                     $DesiredIsDefaultRecipientsEnabled = $DesiredApprovalAndDefaultRecipientState
 
@@ -147,17 +156,21 @@ function Compare-PIMSettings {
                         Write-Host "The Additional Recipients for NNotification_Admin_Admin_Eligibility policy rule for $($Role.Name) is not configured as desired."
                         Write-Host "Its Additional Recipients should be set to: [$($DesiredAdditionalNotificationRecipientState -join ',')]"
                     
+
                         #Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
                         #$DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
                         $DriftCounter += 1
                     } else {
+
                         Write-Host "Sending notifications to additional recipients for Notification_Admin_Admin_Eligibility rule when eligible members activate the $($Role.Name) role is as desired."
+
                     }
                 }
 
                 # 4) Notification_Admin_Admin_Assignment
                 "Notification_Admin_Admin_Assignment" {
                     $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+
                     $CurrentAdditionalRecipients = $Rule.AdditionalProperties.notificationRecipients 
                     $DesiredIsDefaultRecipientsEnabled = $DesiredApprovalAndDefaultRecipientState
 
@@ -180,11 +193,14 @@ function Compare-PIMSettings {
                         Write-Host "The Additional Recipients for Notification_Admin_Admin_Assignment policy rule for $($Role.Name) is not configured as desired."
                         Write-Host "Its Additional Recipients should be set to: [$($DesiredAdditionalNotificationRecipientState -join ',')]"
                     
+
                         #Write-Host "  Current: $CurrentIsDefaultRecipientsEnabled, Desired: $DesiredIsDefaultRecipientsEnabled"
                         #$DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Current=$CurrentIsDefaultRecipientsEnabled -> Desired=$DesiredIsDefaultRecipientsEnabled"
                         $DriftCounter += 1
                     } else {
+
                         Write-Host "Sending notifications to additional recipients  for Notification_Admin_Admin_Assignment rule when eligible members activate the $($Role.Name) role is as desired."
+
                     }
                 }
 
@@ -217,7 +233,9 @@ if ($DriftCounter -gt 0) {
                     }
 
                     $CurrentIsApprovalRequired = $Rule.AdditionalProperties.setting.isApprovalRequired
+
                     $DesiredIsApprovalRequired = $DesiredApprovalAndDefaultRecipientState 
+
 
                     if ($CurrentIsApprovalRequired -ne $DesiredIsApprovalRequired) {
                         $DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Current=$CurrentIsApprovalRequired -> Desired=$DesiredIsApprovalRequired"
@@ -227,6 +245,7 @@ if ($DriftCounter -gt 0) {
                 # 2) Notification_Admin_EndUser_Assignment
                 "Notification_Admin_EndUser_Assignment" {
                     $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+
                     $CurrentRecipients = $Rule.AdditionalProperties.notificationRecipients
                     $DesiredIsDefaultRecipientsEnabled = $DesiredApprovalAndDefaultRecipientState
 
@@ -241,11 +260,13 @@ if ($DriftCounter -gt 0) {
                         {
                         $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Additional Recipients: Current=[$($CurrentRecipients -join ';')] -> Desired=[$($DesiredAdditionalNotificationRecipientState -join ';')]"
                     }
+
                 } 
 
                 # 3) Notification_Admin_Admin_Eligibility
                 "Notification_Admin_Admin_Eligibility" {
                     $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+
                     $CurrentRecipients = $Rule.AdditionalProperties.notificationRecipients
                     $DesiredIsDefaultRecipientsEnabled = $DesiredApprovalAndDefaultRecipientState
 
@@ -259,12 +280,14 @@ if ($DriftCounter -gt 0) {
                     if (($CurrentRecipients -join ',') -ne ($DesiredAdditionalNotificationRecipientState -join ',')) 
                         {
                         $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Additional Recipients: Current=[$($CurrentRecipients -join ';')] -> Desired=[$($DesiredAdditionalNotificationRecipientState -join ';')]"
+
                     }
                 }
 
                 # 4) Notification_Admin_Admin_Assignment
                 "Notification_Admin_Admin_Assignment" {
                     $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+
                     $CurrentRecipients = $Rule.AdditionalProperties.notificationRecipients
                     $DesiredIsDefaultRecipientsEnabled = $DesiredApprovalAndDefaultRecipientState
 
@@ -278,6 +301,7 @@ if ($DriftCounter -gt 0) {
                     if (($CurrentRecipients -join ',') -ne ($DesiredAdditionalNotificationRecipientState -join ',')) 
                         {
                         $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Additional Recipients: Current=[$($CurrentRecipients -join ';')] -> Desired=[$($DesiredAdditionalNotificationRecipientState -join ';')]"
+
                     }
                 }                
             }
@@ -303,7 +327,9 @@ else {
                     }
 
                     $CurrentIsApprovalRequired = $Rule.AdditionalProperties.setting.isApprovalRequired
+
                     $DesiredIsApprovalRequired = $DesiredApprovalAndDefaultRecipientState
+
 
                     $DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Setting is configured as desired. No change is necessary."
                 }
@@ -311,9 +337,11 @@ else {
                 # 2) Notification_Admin_EndUser_Assignment
                 "Notification_Admin_EndUser_Assignment" {
                     $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+
                     $CurrentRecipients = $Rule.AdditionalProperties.notificationRecipients
                     $DesiredIsDefaultRecipientsEnabled = $DesiredApprovalAndDefaultRecipientState
                     
+
 
                     $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Setting is configured as desired. No change is necessary."
                 }     
@@ -321,8 +349,10 @@ else {
                 # 3) Notification_Admin_Admin_Eligibility
                 "Notification_Admin_Admin_Eligibility" {
                     $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+
                     $CurrentRecipients = $Rule.AdditionalProperties.notificationRecipients
                     $DesiredIsDefaultRecipientsEnabled = $DesiredApprovalAndDefaultRecipientState
+
 
                     $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Setting is configured as desired. No change is necessary."
                 }
@@ -330,8 +360,10 @@ else {
                 # 4) Notification_Admin_Admin_Assignment
                 "Notification_Admin_Admin_Assignment" {
                     $CurrentIsDefaultRecipientsEnabled = $Rule.AdditionalProperties.isDefaultRecipientsEnabled
+
                     $CurrentRecipients = $Rule.AdditionalProperties.notificationRecipients
                     $DesiredIsDefaultRecipientsEnabled = $DesiredApprovalAndDefaultRecipientState
+
 
                     $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Setting is configured as desired. No change is necessary."
                 }    
@@ -375,20 +407,26 @@ $DriftSummary | ForEach-Object { Write-Host $_ }
                 
                 # 2) Notification_Admin_EndUser_Assignment
                 "Notification_Admin_EndUser_Assignment" {
+
                     Write-Host "Notification_Admin_EndUser_Assignment: Default Alert Recipient Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
                     Write-Host " Additional Recipients: [$($Rule.AdditionalProperties.notificationRecipients -join ',')]"
+
                 }
 
                 # 3) Notification_Admin_Admin_Eligibility
                 "Notification_Admin_Admin_Eligibility" {
+
                     Write-Host "Notification_Admin_Admin_Eligibility: Default Alert Recipient Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
                     Write-Host " Additional Recipients: [$($Rule.AdditionalProperties.notificationRecipients -join ',')]"
+
                 }
 
                 # 4) Notification_Admin_Admin_Assignment
                 "Notification_Admin_Admin_Assignment" {
+
                     Write-Host "Notification_Admin_Admin_Assignment: Default Alert Recipient Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
                     Write-Host " Additional Recipients: [$($Rule.AdditionalProperties.notificationRecipients -join ',')]"
+
                 }               
             }
         }

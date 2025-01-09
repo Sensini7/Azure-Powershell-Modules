@@ -33,6 +33,7 @@ env:
   AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
   IS_AZURE_GOV: ${{ vars.IS_AZURE_GOV }}
   ExecuteChange: "${{ inputs.execute || 'false' }}"
+
   APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS: "${{ vars.APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS }}"  # Ensure this is set as a boolean in the repo variables
   ADDITIONAL_NOTIFICATION_RECIPIENTS: "${{ vars.ADDITIONAL_NOTIFICATION_RECIPIENTS }}"  # Add this line
 
@@ -89,6 +90,7 @@ jobs:
 
           # Convert EXECUTE_CHANGE to Boolean before passing to the function
           $ExecuteChange = [System.Convert]::ToBoolean($env:ExecuteChange)
+
           $ApprovalAndDefaultRecipientSettings = [System.Convert]::ToBoolean($env:APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS)
 
           # Convert comma-separated string to array (if not empty)
@@ -100,3 +102,4 @@ jobs:
           Write-Output "Configuring PIM Settings"
           # Set the PIM settings
           Set-PIMSettings -APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS $ApprovalAndDefaultRecipientSettings -AdditionalNotificationRecipients $AdditionalRecipients -ExecuteChange $ExecuteChange
+
