@@ -1,8 +1,10 @@
 function Set-PIMSettings {
     param (
+
         [bool]$APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS,
         [bool]$ExecuteChange,
         [string[]]$AdditionalNotificationRecipients = @()
+
     )
 
     # Define the desired PIM Settings And Variables in the parent scope
@@ -18,8 +20,10 @@ function Set-PIMSettings {
         @{ Name = "Cloud Application Administrator";  RoleDefinitionId = "158c047a-c907-4556-b7ef-446551a6b5f7" }
     )
     $AllPolicyRules = @{}
+
     $DesiredApprovalAndDefaultRecipientState = $APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS
     $DesiredAdditionalNotificationRecipientState = $AdditionalNotificationRecipients
+
     
     Write-Host "===================================================================================================="
     if (-not $ExecuteChange) {
@@ -109,7 +113,9 @@ function Set-PIMSettings {
                             target        = $Rule.Target
                             setting       = @{
                                 "@odata.type"      = "#microsoft.graph.approvalSettings"
+
                                 isApprovalRequired = [bool]$APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS
+
                                 approvalStages     = @()
                             }
                         }
@@ -123,8 +129,10 @@ function Set-PIMSettings {
                             notificationType             = "Email" #$Rule.notificationType
                             recipientType                = "Admin" #$Rule.recipientType
                             notificationLevel            = "All" #$Rule.notificationLevel
+
                             isDefaultRecipientsEnabled   = [bool]$APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS
                             notificationRecipients       = $AdditionalNotificationRecipients
+
                         }
                     }
                     # ========== 3) Notification_Admin_Admin_Eligibility ==========
@@ -136,8 +144,10 @@ function Set-PIMSettings {
                             notificationType             = "Email" #$Rule.notificationType
                             recipientType                = "Admin" #$Rule.recipientType
                             notificationLevel            = "All" #$Rule.notificationLevel
+
                             isDefaultRecipientsEnabled   = [bool]$APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS
                             notificationRecipients       = $AdditionalNotificationRecipients
+
                         }
                     }
                     # ========== 4) Notification_Admin_Admin_Assignment ==========
@@ -149,8 +159,10 @@ function Set-PIMSettings {
                             notificationType             = "Email" #$Rule.notificationType
                             recipientType                = "Admin" #$Rule.recipientType
                             notificationLevel            = "All" #$Rule.notificationLevel
+
                             isDefaultRecipientsEnabled   = [bool]$APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS
                             notificationRecipients       = $AdditionalNotificationRecipients
+
                         }
                     }
                     default {
