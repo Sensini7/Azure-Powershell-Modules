@@ -236,6 +236,11 @@ if ($DriftCounter -gt 0) {
                        ) {
                         $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Current=[Enabled:$CurrentIsDefaultRecipientsEnabled,Additional Recipients:$($CurrentAdditionalRecipients -join ';')] -> Desired=[Enabled:$DesiredIsDefaultRecipientsEnabled,Additional Recipients:$($DesiredAdditionalNotificationRecipientState -join ';')]"
                     }  
+
+                    if (($CurrentRecipients -join ',') -ne ($DesiredAdditionalNotificationRecipientState -join ',')) 
+                        {
+                        $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Additional Recipients: Current=[$($CurrentRecipients -join ';')] -> Desired=[$($DesiredAdditionalNotificationRecipientState -join ';')]"
+                    }
                 } 
 
                 # 3) Notification_Admin_Admin_Eligibility
@@ -250,6 +255,11 @@ if ($DriftCounter -gt 0) {
                        ) {
                         $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Current=[Enabled:$CurrentIsDefaultRecipientsEnabled,Additional Recipients:$($CurrentAdditionalRecipients -join ';')] -> Desired=[Enabled:$DesiredIsDefaultRecipientsEnabled,Additional Recipients:$($DesiredAdditionalNotificationRecipientState -join ';')]"
                     }
+
+                    if (($CurrentRecipients -join ',') -ne ($DesiredAdditionalNotificationRecipientState -join ',')) 
+                        {
+                        $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Additional Recipients: Current=[$($CurrentRecipients -join ';')] -> Desired=[$($DesiredAdditionalNotificationRecipientState -join ';')]"
+                    }
                 }
 
                 # 4) Notification_Admin_Admin_Assignment
@@ -263,6 +273,11 @@ if ($DriftCounter -gt 0) {
                        #$null -ne (Compare-Object -ReferenceObject $CurrentAdditionalRecipients -DifferenceObject $DesiredAdditionalNotificationRecipientState)
                        ) {
                         $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Current=[Enabled:$CurrentIsDefaultRecipientsEnabled,Additional Recipients:$($CurrentAdditionalRecipients -join ';')] -> Desired=[Enabled:$DesiredIsDefaultRecipientsEnabled,Additional Recipients:$($DesiredAdditionalNotificationRecipientState -join ';')]"
+                    }
+
+                    if (($CurrentRecipients -join ',') -ne ($DesiredAdditionalNotificationRecipientState -join ',')) 
+                        {
+                        $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Additional Recipients: Current=[$($CurrentRecipients -join ';')] -> Desired=[$($DesiredAdditionalNotificationRecipientState -join ';')]"
                     }
                 }                
             }
@@ -360,19 +375,19 @@ $DriftSummary | ForEach-Object { Write-Host $_ }
                 
                 # 2) Notification_Admin_EndUser_Assignment
                 "Notification_Admin_EndUser_Assignment" {
-                    Write-Host "Notification_Admin_EndUser_Assignment: Default Alert Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
+                    Write-Host "Notification_Admin_EndUser_Assignment: Default Alert Recipient Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
                     Write-Host " Additional Recipients: [$($Rule.AdditionalProperties.notificationRecipients -join ',')]"
                 }
 
                 # 3) Notification_Admin_Admin_Eligibility
                 "Notification_Admin_Admin_Eligibility" {
-                    Write-Host "Notification_Admin_Admin_Eligibility: Default Alert Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
+                    Write-Host "Notification_Admin_Admin_Eligibility: Default Alert Recipient Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
                     Write-Host " Additional Recipients: [$($Rule.AdditionalProperties.notificationRecipients -join ',')]"
                 }
 
                 # 4) Notification_Admin_Admin_Assignment
                 "Notification_Admin_Admin_Assignment" {
-                    Write-Host "Notification_Admin_Admin_Assignment: Default Alert Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
+                    Write-Host "Notification_Admin_Admin_Assignment: Default Alert Recipient Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
                     Write-Host " Additional Recipients: [$($Rule.AdditionalProperties.notificationRecipients -join ',')]"
                 }               
             }
