@@ -97,9 +97,10 @@ jobs:
 
           $ApprovalAndDefaultRecipientSettings = [System.Convert]::ToBoolean($env:APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS)
 
-          # Convert comma-separated string to array (if not empty)
+          # Convert comma-separated string to array (if not empty) and Inteprete None as empty array
           $AdditionalRecipients = @()
-          if (![string]::IsNullOrWhiteSpace($env:ADDITIONAL_NOTIFICATION_RECIPIENTS)) {
+          if (![string]::IsNullOrWhiteSpace($env:ADDITIONAL_NOTIFICATION_RECIPIENTS)) -and
+              $env:ADDITIONAL_NOTIFICATION_RECIPIENTS -ne "None" {
               $AdditionalRecipients = $env:ADDITIONAL_NOTIFICATION_RECIPIENTS.Split(',').Trim()
           }
 
