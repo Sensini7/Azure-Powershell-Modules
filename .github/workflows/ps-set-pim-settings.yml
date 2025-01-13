@@ -35,7 +35,7 @@ env:
   ExecuteChange: "${{ inputs.execute || 'false' }}"
 
   APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS: "${{ vars.APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS }}"  # Ensure this is set as a boolean in the repo variables
-  ADDITIONAL_NOTIFICATION_RECIPIENTS: "${{ vars.ADDITIONAL_NOTIFICATION_RECIPIENTS }}"  # Add this line
+  ADDITIONAL_NOTIFICATION_RECIPIENTS: "${{ vars.ADDITIONAL_NOTIFICATION_RECIPIENTS == 'None' && '' || vars.ADDITIONAL_NOTIFICATION_RECIPIENTS }}"  # Add this line
 
 jobs:
   run-powershell-script:
