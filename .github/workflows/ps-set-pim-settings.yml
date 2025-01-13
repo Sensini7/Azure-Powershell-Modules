@@ -98,10 +98,18 @@ jobs:
           $ApprovalAndDefaultRecipientSettings = [System.Convert]::ToBoolean($env:APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS)
 
           # Convert comma-separated string to array (if not empty) and Inteprete None as empty array
-          $AdditionalRecipients = @()
-          if (![string]::IsNullOrWhiteSpace($env:ADDITIONAL_NOTIFICATION_RECIPIENTS)) {
-              $AdditionalRecipients = $env:ADDITIONAL_NOTIFICATION_RECIPIENTS.Split(',').Trim()
+          # $AdditionalRecipients = @()
+          # if (![string]::IsNullOrWhiteSpace($env:ADDITIONAL_NOTIFICATION_RECIPIENTS)) {
+          #     $AdditionalRecipients = $env:ADDITIONAL_NOTIFICATION_RECIPIENTS.Split(',').Trim()
+          # }
+
+          # Simple conversion of 'None' to empty array
+          $AdditionalRecipients = if ($env:ADDITIONAL_NOTIFICATION_RECIPIENTS -eq 'None') { 
+              @() 
+          } else { 
+              $env:ADDITIONAL_NOTIFICATION_RECIPIENTS.Split(',').Trim() 
           }
+
 
           Write-Output "Configuring PIM Settings"
           # Set the PIM settings
