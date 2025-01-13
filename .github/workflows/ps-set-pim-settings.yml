@@ -99,8 +99,8 @@ jobs:
 
           # Convert comma-separated string to array (if not empty) and Inteprete None as empty array
           $AdditionalRecipients = @()
-          if (![string]::IsNullOrWhiteSpace($env:ADDITIONAL_NOTIFICATION_RECIPIENTS)) -and
-              $env:ADDITIONAL_NOTIFICATION_RECIPIENTS -ne "None" {
+          if (![string]::IsNullOrWhiteSpace($env:ADDITIONAL_NOTIFICATION_RECIPIENTS) -and
+              $env:ADDITIONAL_NOTIFICATION_RECIPIENTS -ne "None") {
               $AdditionalRecipients = $env:ADDITIONAL_NOTIFICATION_RECIPIENTS.Split(',').Trim()
           }
 
