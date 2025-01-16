@@ -120,16 +120,20 @@ function Compare-PIMSettings {
                     $RemoveRecipients = @()
                     $AddRecipients = @()
 
+                    # Standardize the separators and create clean arrays for comparison
+                    $CurrentRecipientsArray = $CurrentAdditionalRecipients | ForEach-Object { $_.Trim() }
+                    $DesiredRecipientsArray = $DesiredAdditionalNotificationRecipientState -split ';' | ForEach-Object { $_.Trim() }
+
                     # Find recipients that need to be removed
-                    foreach($Recipient in $CurrentAdditionalRecipients) {
-                        if($DesiredAdditionalNotificationRecipientState -notcontains $Recipient) {
+                    foreach($Recipient in $CurrentRecipientsArray) {
+                        if($DesiredRecipientsArray -notcontains $Recipient) {
                             $RemoveRecipients += $Recipient
                         }
                     }
 
                     # Find recipients that need to be added
-                    foreach($Recipient in $DesiredAdditionalNotificationRecipientState) {
-                        if($CurrentRecipients -notcontains $Recipient) {
+                    foreach($Recipient in $DesiredRecipientsArray) {
+                        if($CurrentRecipientsArray -notcontains $Recipient) {
                             $AddRecipients += $Recipient
                         }
                     }
@@ -192,14 +196,18 @@ function Compare-PIMSettings {
                     $RemoveRecipients = @()
                     $AddRecipients = @()
 
-                    foreach($Recipient in $CurrentAdditionalRecipients) {
-                        if($DesiredAdditionalNotificationRecipientState -notcontains $Recipient) {
+                    # Standardize the separators and create clean arrays for comparison
+                    $CurrentRecipientsArray = $CurrentAdditionalRecipients | ForEach-Object { $_.Trim() }
+                    $DesiredRecipientsArray = $DesiredAdditionalNotificationRecipientState -split ';' | ForEach-Object { $_.Trim() }
+
+                    foreach($Recipient in $CurrentRecipientsArray) {
+                        if($DesiredRecipientsArray -notcontains $Recipient) {
                             $RemoveRecipients += $Recipient
                         }
                     }
 
-                    foreach($Recipient in $DesiredAdditionalNotificationRecipientState) {
-                        if($CurrentRecipients -notcontains $Recipient) {
+                    foreach($Recipient in $DesiredRecipientsArray) {
+                        if($CurrentRecipientsArray -notcontains $Recipient) {
                             $AddRecipients += $Recipient
                         }
                     }
@@ -260,14 +268,18 @@ function Compare-PIMSettings {
                     $RemoveRecipients = @()
                     $AddRecipients = @()
 
-                    foreach($Recipient in $CurrentAdditionalRecipients) {
-                        if($DesiredAdditionalNotificationRecipientState -notcontains $Recipient) {
+                    # Standardize the separators and create clean arrays for comparison
+                    $CurrentRecipientsArray = $CurrentAdditionalRecipients | ForEach-Object { $_.Trim() }
+                    $DesiredRecipientsArray = $DesiredAdditionalNotificationRecipientState -split ';' | ForEach-Object { $_.Trim() }
+
+                    foreach($Recipient in $CurrentRecipientsArray) {
+                        if($DesiredRecipientsArray -notcontains $Recipient) {
                             $RemoveRecipients += $Recipient
                         }
                     }
 
-                    foreach($Recipient in $DesiredAdditionalNotificationRecipientState) {
-                        if($CurrentRecipients -notcontains $Recipient) {
+                    foreach($Recipient in $DesiredRecipientsArray) {
+                        if($CurrentRecipientsArray -notcontains $Recipient) {
                             $AddRecipients += $Recipient
                         }
                     }
@@ -363,14 +375,18 @@ if ($DriftCounter -gt 0) {
                     $RemoveRecipients = @()
                     $AddRecipients = @()
 
-                    foreach($Recipient in $CurrentAdditionalRecipients) {
-                        if($DesiredAdditionalNotificationRecipientState -notcontains $Recipient) {
+                    # Standardize the separators and create clean arrays
+                    $CurrentRecipientsArray = $CurrentAdditionalRecipients | ForEach-Object { $_.Trim() }
+                    $DesiredRecipientsArray = $DesiredAdditionalNotificationRecipientState -split ';' | ForEach-Object { $_.Trim() }
+
+                    foreach($Recipient in $CurrentRecipientsArray) {
+                        if($DesiredRecipientsArray -notcontains $Recipient) {
                             $RemoveRecipients += $Recipient
                         }
                     }
 
-                    foreach($Recipient in $DesiredAdditionalNotificationRecipientState) {
-                        if($CurrentAdditionalRecipients -notcontains $Recipient) {
+                    foreach($Recipient in $DesiredRecipientsArray) {
+                        if($CurrentRecipientsArray -notcontains $Recipient) {
                             $AddRecipients += $Recipient
                         }
                     }
@@ -412,14 +428,18 @@ if ($DriftCounter -gt 0) {
                     $RemoveRecipients = @()
                     $AddRecipients = @()
 
-                    foreach($Recipient in $CurrentAdditionalRecipients) {
-                        if($DesiredAdditionalNotificationRecipientState -notcontains $Recipient) {
+                    # Standardize the separators and create clean arrays
+                    $CurrentRecipientsArray = $CurrentAdditionalRecipients | ForEach-Object { $_.Trim() }
+                    $DesiredRecipientsArray = $DesiredAdditionalNotificationRecipientState -split ';' | ForEach-Object { $_.Trim() }
+
+                    foreach($Recipient in $CurrentRecipientsArray) {
+                        if($DesiredRecipientsArray -notcontains $Recipient) {
                             $RemoveRecipients += $Recipient
                         }
                     }
 
-                    foreach($Recipient in $DesiredAdditionalNotificationRecipientState) {
-                        if($CurrentAdditionalRecipients -notcontains $Recipient) {
+                    foreach($Recipient in $DesiredRecipientsArray) {
+                        if($CurrentRecipientsArray -notcontains $Recipient) {
                             $AddRecipients += $Recipient
                         }
                     }
@@ -462,14 +482,18 @@ if ($DriftCounter -gt 0) {
                     $RemoveRecipients = @()
                     $AddRecipients = @()
 
-                    foreach($Recipient in $CurrentAdditionalRecipients) {
-                        if($DesiredAdditionalNotificationRecipientState -notcontains $Recipient) {
+                    # Standardize the separators and create clean arrays
+                    $CurrentRecipientsArray = $CurrentAdditionalRecipients | ForEach-Object { $_.Trim() }
+                    $DesiredRecipientsArray = $DesiredAdditionalNotificationRecipientState -split ';' | ForEach-Object { $_.Trim() }
+
+                    foreach($Recipient in $CurrentRecipientsArray) {
+                        if($DesiredRecipientsArray -notcontains $Recipient) {
                             $RemoveRecipients += $Recipient
                         }
                     }
 
-                    foreach($Recipient in $DesiredAdditionalNotificationRecipientState) {
-                        if($CurrentAdditionalRecipients -notcontains $Recipient) {
+                    foreach($Recipient in $DesiredRecipientsArray) {
+                        if($CurrentRecipientsArray -notcontains $Recipient) {
                             $AddRecipients += $Recipient
                         }
                     }
