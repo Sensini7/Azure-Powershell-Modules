@@ -559,7 +559,7 @@ if ($DriftCounter -gt 0) {
 #     }        
 # }
 
-# $DriftSummary | ForEach-Object { Write-Host $_ }
+$DriftSummary | ForEach-Object { Write-Host $_ }
 
     # Summarize Current State
     Write-Host "====================================================================================================" 
