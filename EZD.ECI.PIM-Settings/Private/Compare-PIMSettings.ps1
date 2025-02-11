@@ -350,9 +350,10 @@ if ($DriftCounter -gt 0) {
 
                     if ($CurrentIsApprovalRequired -ne $DesiredIsApprovalRequired) {
                         $DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Current=$CurrentIsApprovalRequired -> Desired=$DesiredIsApprovalRequired"
-                    } else {
-                        $DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Setting is configured as desired. No change is necessary."
                     }
+                    #  else {
+                    #     $DriftSummary += "$($Role.Name) | Approval_EndUser_Assignment | Setting is configured as desired. No change is necessary."
+                    # }
                 } 
 
                 # 2) Notification_Admin_EndUser_Assignment
@@ -367,9 +368,10 @@ if ($DriftCounter -gt 0) {
                        #$null -ne (Compare-Object -ReferenceObject $CurrentAdditionalRecipients -DifferenceObject $DesiredAdditionalNotificationRecipientState)
                        ) {
                         $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Current=[Enabled:$CurrentIsDefaultRecipientsEnabled,Additional Recipients:$($CurrentAdditionalRecipients -join ';')] -> Desired=[Enabled:$DesiredIsDefaultRecipientsEnabled,Additional Recipients:$($DesiredAdditionalNotificationRecipientState -join ';')]"
-                    } else {
-                        $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Default Recipients setting is configured as desired. No change is necessary."
-                    }
+                    } 
+                    # else {
+                    #     $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Default Recipients setting is configured as desired. No change is necessary."
+                    # }
                     
                     # Check additional recipients
                     $RemoveRecipients = @()
@@ -398,9 +400,10 @@ if ($DriftCounter -gt 0) {
                         if($AddRecipients.Count -gt 0) {
                             $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Recipients to add: [$($AddRecipients -join ';')]"
                         }
-                    } else {
-                        $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Additional Recipients are configured as desired. No change is necessary."
-                    }
+                    } 
+                    # else {
+                    #     $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Additional Recipients are configured as desired. No change is necessary."
+                    # }
                     # if (($CurrentAdditionalRecipients -join ',') -ne ($DesiredAdditionalNotificationRecipientState -join ',')) 
                     #     {
                     #     $DriftSummary += "$($Role.Name) | Notification_Admin_EndUser_Assignment | Additional Recipients: Current=[$($CurrentAdditionalRecipients -join ';')] -> Desired=[$($DesiredAdditionalNotificationRecipientState -join ';')]"
@@ -420,9 +423,10 @@ if ($DriftCounter -gt 0) {
                        #$null -ne (Compare-Object -ReferenceObject $CurrentAdditionalRecipients -DifferenceObject $DesiredAdditionalNotificationRecipientState)
                        ) {
                         $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Current=[Enabled:$CurrentIsDefaultRecipientsEnabled,Additional Recipients:$($CurrentAdditionalRecipients -join ';')] -> Desired=[Enabled:$DesiredIsDefaultRecipientsEnabled,Additional Recipients:$($DesiredAdditionalNotificationRecipientState -join ';')]"
-                    } else {
-                        $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Default Recipients setting is configured as desired. No change is necessary."
-                    }
+                    } 
+                    # else {
+                    #     $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Default Recipients setting is configured as desired. No change is necessary."
+                    # }
 
                     # Check additional recipients
                     $RemoveRecipients = @()
@@ -451,9 +455,10 @@ if ($DriftCounter -gt 0) {
                         if($AddRecipients.Count -gt 0) {
                             $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Recipients to add: [$($AddRecipients -join ';')]"
                         }
-                    } else {
-                        $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Additional Recipients are configured as desired. No change is necessary."
-                    }
+                    } 
+                    # else {
+                    #     $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Eligibility | Additional Recipients are configured as desired. No change is necessary."
+                    # }
 
                     # if (($CurrentAdditionalRecipients -join ',') -ne ($DesiredAdditionalNotificationRecipientState -join ',')) 
                     #     {
@@ -474,9 +479,10 @@ if ($DriftCounter -gt 0) {
                        #$null -ne (Compare-Object -ReferenceObject $CurrentAdditionalRecipients -DifferenceObject $DesiredAdditionalNotificationRecipientState)
                        ) {
                         $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Current=[Enabled:$CurrentIsDefaultRecipientsEnabled,Additional Recipients:$($CurrentAdditionalRecipients -join ';')] -> Desired=[Enabled:$DesiredIsDefaultRecipientsEnabled,Additional Recipients:$($DesiredAdditionalNotificationRecipientState -join ';')]"
-                    } else {
-                        $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Default Recipients setting is configured as desired. No change is necessary."
-                    }
+                    } 
+                    # else {
+                    #     $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Default Recipients setting is configured as desired. No change is necessary."
+                    # }
 
                     # Check additional recipients
                     $RemoveRecipients = @()
@@ -505,9 +511,10 @@ if ($DriftCounter -gt 0) {
                         if($AddRecipients.Count -gt 0) {
                             $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Recipients to add: [$($AddRecipients -join ';')]"
                         }
-                    } else {
-                        $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Additional Recipients are configured as desired. No change is necessary."
-                    }
+                    } 
+                    # else {
+                    #     $DriftSummary += "$($Role.Name) | Notification_Admin_Admin_Assignment | Additional Recipients are configured as desired. No change is necessary."
+                    # }
 
                     # if (($CurrentAdditionalRecipients -join ',') -ne ($DesiredAdditionalNotificationRecipientState -join ',')) 
                     #     {
