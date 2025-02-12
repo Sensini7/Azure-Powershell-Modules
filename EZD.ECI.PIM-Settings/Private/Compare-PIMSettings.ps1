@@ -590,20 +590,40 @@ if ($DriftCounter -gt 0) {
 #     }        
 # }
 
+if ($DriftSummary.Count -gt 0) {
+    $currentRole = ""
+    $DriftSummary | ForEach-Object {
+        $parts = $_ -split ' \| '
+        if ($currentRole -ne $parts[0]) {
+            if ($currentRole -ne "") { Write-Host "" }  # Add line break between roles
+            $currentRole = $parts[0]
+            Write-Host $currentRole
+        }
+        $ruleName = $parts[1] -replace '_', ' '
+        $details = $parts[2]
+        Write-Host "     $ruleName`: $details"
+    }
+} else {
+    foreach ($Role in $Roles) {
+        Write-Host $Role.Name
+        Write-Host "     No drift detected. The current state aligns with the desired state."
+        Write-Host ""
+    }
+}
 #$DriftSummary | ForEach-Object { Write-Host $_ }
 # Format and display Drift Summary
-$currentRole = ""
-$DriftSummary | ForEach-Object {
-    $parts = $_ -split ' \| '
-    if ($currentRole -ne $parts[0]) {
-        if ($currentRole -ne "") { Write-Host "" }  # Add line break between roles
-        $currentRole = $parts[0]
-        Write-Host $currentRole
-    }
-    $ruleName = $parts[1] -replace '_', ' '
-    $details = $parts[2]
-    Write-Host "     $ruleName`: $details"
-}
+# $currentRole = ""
+# $DriftSummary | ForEach-Object {
+#     $parts = $_ -split ' \| '
+#     if ($currentRole -ne $parts[0]) {
+#         if ($currentRole -ne "") { Write-Host "" }  # Add line break between roles
+#         $currentRole = $parts[0]
+#         Write-Host $currentRole
+#     }
+#     $ruleName = $parts[1] -replace '_', ' '
+#     $details = $parts[2]
+#     Write-Host "     $ruleName`: $details"
+# }
 
     # Summarize Current State
     Write-Host "====================================================================================================" 
