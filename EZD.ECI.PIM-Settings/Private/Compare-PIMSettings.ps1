@@ -590,7 +590,20 @@ if ($DriftCounter -gt 0) {
 #     }        
 # }
 
-$DriftSummary | ForEach-Object { Write-Host $_ }
+#$DriftSummary | ForEach-Object { Write-Host $_ }
+# Format and display Drift Summary
+$currentRole = ""
+$DriftSummary | ForEach-Object {
+    $parts = $_ -split ' \| '
+    if ($currentRole -ne $parts[0]) {
+        if ($currentRole -ne "") { Write-Host "" }  # Add line break between roles
+        $currentRole = $parts[0]
+        Write-Host $currentRole
+    }
+    $ruleName = $parts[1] -replace '_', ' '
+    $details = $parts[2]
+    Write-Host "     $ruleName`: $details"
+}
 
     # Summarize Current State
     Write-Host "====================================================================================================" 
@@ -620,30 +633,30 @@ $DriftSummary | ForEach-Object { Write-Host $_ }
                         # Skip evaluating Approval rule for non-Global Admin roles
                         continue
                     }
-                    Write-Host "Approval_EndUser_Assignment: Approval Configuration: $($Rule.AdditionalProperties.setting.isApprovalRequired)"
+                    Write-Host "      Approval EndUser Assignment: Approval Configuration: $($Rule.AdditionalProperties.setting.isApprovalRequired)"
                 }
                 
                 # 2) Notification_Admin_EndUser_Assignment
                 "Notification_Admin_EndUser_Assignment" {
 
-                    Write-Host "Notification_Admin_EndUser_Assignment: Default Alert Recipient Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
-                    Write-Host " Additional Recipients: [$($Rule.AdditionalProperties.notificationRecipients -join ',')]"
+                    Write-Host "      Notification Admin EndUser Assignment: Default Alert Recipient Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
+                    Write-Host "     Additional Recipients: [$($Rule.AdditionalProperties.notificationRecipients -join ',')]"
 
                 }
 
                 # 3) Notification_Admin_Admin_Eligibility
                 "Notification_Admin_Admin_Eligibility" {
 
-                    Write-Host "Notification_Admin_Admin_Eligibility: Default Alert Recipient Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
-                    Write-Host " Additional Recipients: [$($Rule.AdditionalProperties.notificationRecipients -join ',')]"
+                    Write-Host "      Notification Admin Eligibility: Default Alert Recipient Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
+                    Write-Host "      Additional Recipients: [$($Rule.AdditionalProperties.notificationRecipients -join ',')]"
 
                 }
 
                 # 4) Notification_Admin_Admin_Assignment
                 "Notification_Admin_Admin_Assignment" {
 
-                    Write-Host "Notification_Admin_Admin_Assignment: Default Alert Recipient Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
-                    Write-Host " Additional Recipients: [$($Rule.AdditionalProperties.notificationRecipients -join ',')]"
+                    Write-Host "      Notification Admin Assignment: Default Alert Recipient Configuration: $($Rule.AdditionalProperties.isDefaultRecipientsEnabled)"
+                    Write-Host "      Additional Recipients: [$($Rule.AdditionalProperties.notificationRecipients -join ',')]"
 
                 }               
             }
