@@ -639,7 +639,7 @@ if ($DriftSummary.Count -gt 0) {
     Write-Host "===================================================================================================="
 
     foreach ($Role in $Roles) {
-        Write-Host "Role: $($Role.Name)"
+        Write-Host "Role: $($Role.Name):"
         $PolicyRules = $AllPolicyRules[$Role.Name]
         if (-not $PolicyRules) {continue}
     
