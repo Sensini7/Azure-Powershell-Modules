@@ -597,7 +597,7 @@ if ($DriftSummary.Count -gt 0) {
         if ($currentRole -ne $parts[0]) {
             if ($currentRole -ne "") { Write-Host "" }  # Add line break between roles
             $currentRole = $parts[0]
-            Write-Host $currentRole
+            Write-Host "$currentRole:"
         }
         $ruleName = $parts[1] -replace '_', ' '
         $details = $parts[2]
@@ -605,7 +605,7 @@ if ($DriftSummary.Count -gt 0) {
     }
 } else {
     foreach ($Role in $Roles) {
-        Write-Host $Role.Name
+        Write-Host "$($Role.Name):"
         Write-Host "     No drift detected. The current state aligns with the desired state."
         Write-Host ""
     }
