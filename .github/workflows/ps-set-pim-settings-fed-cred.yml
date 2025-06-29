@@ -45,16 +45,16 @@ jobs:
       - name: Checkout PIMSettings module
         uses: actions/checkout@v4
         with:
-          repository: 'Sensini7/Azure-User-Password-Policy'
+          repository: 'Sensini7/Azure-Powershell-Modules'
           ref: 'Sensini/PIMSettings'
-          path: 'EZD.ECI.PIMSettings'
-          sparse-checkout: 'EZD.ECI.PIMSettings'
+          path: 'EZD.ECI.PIM-Settings'
+          sparse-checkout: 'EZD.ECI.PIM-Settings'
           ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
 
       - name: Checkout common module
         uses: actions/checkout@v4
         with:
-          repository: 'Sensini7/Azure-User-Password-Policy'
+          repository: 'Sensini7/Azure-Powershell-Modules'
           ref: 'Sensini/PIMSettings'
           path: 'EZD.ECI.Common'
           sparse-checkout: 'EZD.ECI.Common'
