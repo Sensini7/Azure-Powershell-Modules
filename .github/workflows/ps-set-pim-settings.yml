@@ -48,8 +48,8 @@ jobs:
         with:
           repository: 'Sensini7/Azure-User-Password-Policy'
           ref: 'Sensini/PIMSettings'  # Update to the latest version
-          path: 'EZD.ECI.PIMSettings'
-          sparse-checkout: 'EZD.ECI.PIMSettings'
+          path: 'EZD.ECI.PIM-Settings'
+          sparse-checkout: 'EZD.ECI.PIM-Settings'
           ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
 
       - name: Checkout common module
@@ -65,8 +65,8 @@ jobs:
         shell: pwsh
         run: |
           # Install And Import Modules
-          Install-Module -Name "Microsoft.Graph.Identity.SignIns" -Force
-          Import-Module .\EZD.ECI.Common\EZD.ECI.Common\EZD.ECI.Common.psd1 -Force
+          #Install-Module -Name "Microsoft.Graph.Identity.SignIns" -Force
+          #Import-Module .\EZD.ECI.Common\EZD.ECI.Common\EZD.ECI.Common.psd1 -Force
 
           # Connect To Azure
           if ("${{ vars.IS_AZURE_GOV }}" -eq "true") {
@@ -82,7 +82,11 @@ jobs:
           $SecureAccessToken = ConvertTo-SecureString -String $AccessToken -AsPlainText -Force
           Connect-MgGraph -AccessToken $SecureAccessToken -NoWelcome -Environment $GRAPH_ENVIRONMENT
 
-          Import-Module .\EZD.ECI.PIMSettings\EZD.ECI.PIMSettings\EZD.ECI.PIMSettings.psd1 -Force
+          # Install And Import Modules
+          Install-Module -Name "Microsoft.Graph.Identity.SignIns" -Force
+          Import-Module .\EZD.ECI.Common\EZD.ECI.Common\EZD.ECI.Common.psd1 -Force
+
+          Import-Module .\EZD.ECI.PIM-Settings\EZD.ECI.PIM-Settings\EZD.ECI.PIMSettings.psd1 -Force
 
           ## Must cast into booleans since github actions passes inputs explicitly as a string.
           ## This is the behaviour regardless if they are labeled as boolean workflow inputs.
@@ -93,11 +97,19 @@ jobs:
 
           $ApprovalAndDefaultRecipientSettings = [System.Convert]::ToBoolean($env:APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS)
 
-          # Convert comma-separated string to array (if not empty)
-          $AdditionalRecipients = @()
-          if (![string]::IsNullOrWhiteSpace($env:ADDITIONAL_NOTIFICATION_RECIPIENTS)) {
-              $AdditionalRecipients = $env:ADDITIONAL_NOTIFICATION_RECIPIENTS.Split(',').Trim()
+          # Convert comma-separated string to array (if not empty) and Inteprete None as empty array
+          # $AdditionalRecipients = @()
+          # if (![string]::IsNullOrWhiteSpace($env:ADDITIONAL_NOTIFICATION_RECIPIENTS)) {
+          #     $AdditionalRecipients = $env:ADDITIONAL_NOTIFICATION_RECIPIENTS.Split(',').Trim()
+          # }
+
+          # Simple conversion of 'None' to empty array
+          $AdditionalRecipients = if ($env:ADDITIONAL_NOTIFICATION_RECIPIENTS -eq 'None') { 
+              @() 
+          } else { 
+              $env:ADDITIONAL_NOTIFICATION_RECIPIENTS.Split(',').Trim() 
           }
+
 
           Write-Output "Configuring PIM Settings"
           # Set the PIM settings

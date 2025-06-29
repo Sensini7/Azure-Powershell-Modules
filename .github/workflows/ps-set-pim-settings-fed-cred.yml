@@ -1,0 +1,95 @@
+name: "Entra: Set PIM Settings fed cred"
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        required: true
+        type: choice
+        description: Environment to deploy to
+        options:
+          - sumvita-gov
+          - sumvita
+          - kalvico
+      execute:
+        required: true
+        type: boolean
+        description: Execute Change
+        default: false
+      use_oidc:
+        description: Use OIDC for authentication
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  IS_AZURE_GOV: ${{ vars.IS_AZURE_GOV }}
+  ExecuteChange: "${{ inputs.execute || 'false' }}"
+  USE_OIDC: "${{ inputs.use_oidc || 'false' }}"
+  APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS: "${{ vars.APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS }}"
+  ADDITIONAL_NOTIFICATION_RECIPIENTS: "${{ vars.ADDITIONAL_NOTIFICATION_RECIPIENTS }}"
+
+jobs:
+  run-powershell-script:
+    environment: ${{ inputs.environment || vars.MANAGEMENT_TENANT_NAME }}
+    name: "PIM Settings Configuration"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PIMSettings module
+        uses: actions/checkout@v4
+        with:
+          repository: 'Sensini7/Azure-Powershell-Modules'
+          ref: 'Sensini/PIMSettings'
+          path: 'EZD.ECI.PIM-Settings'
+          sparse-checkout: 'EZD.ECI.PIM-Settings'
+          ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
+
+      - name: Checkout common module
+        uses: actions/checkout@v4
+        with:
+          repository: 'Sensini7/Azure-Powershell-Modules'
+          ref: 'Sensini/PIMSettings'
+          path: 'EZD.ECI.Common'
+          sparse-checkout: 'EZD.ECI.Common'
+          ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
+
+      - name: 'Login to Azure with OIDC'
+        uses: azure/login@v1
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          enable-AzPSSession: true
+          environment: ${{ vars.IS_AZURE_GOV == 'true' && 'AzureUSGovernment' || 'AzureCloud' }}
+
+      - name: Configure PIM Settings
+        shell: pwsh
+        run: |
+          # Install And Import Modules
+          Install-Module -Name "Microsoft.Graph.Identity.SignIns" -Force
+          Import-Module .\EZD.ECI.Common\EZD.ECI.Common\EZD.ECI.Common.psd1 -Force
+
+          # Convert string to boolean
+          $useOidc = [System.Convert]::ToBoolean($env:USE_OIDC)
+          
+          # Connect to Graph (handles OIDC or Client Secret based on input)
+          Connect-EciGraph -UseOIDC:($useOidc)
+
+          Import-Module .\EZD.ECI.PIMSettings\EZD.ECI.PIMSettings\EZD.ECI.PIMSettings.psd1 -Force
+
+          $ExecuteChange = [System.Convert]::ToBoolean($env:ExecuteChange)
+          $ApprovalAndDefaultRecipientSettings = [System.Convert]::ToBoolean($env:APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS)
+
+          $AdditionalRecipients = @()
+          if (![string]::IsNullOrWhiteSpace($env:ADDITIONAL_NOTIFICATION_RECIPIENTS)) {
+              $AdditionalRecipients = $env:ADDITIONAL_NOTIFICATION_RECIPIENTS.Split(',').Trim()
+          }
+
+          Write-Output "Configuring PIM Settings"
+          Set-PIMSettings -APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS $ApprovalAndDefaultRecipientSettings -AdditionalNotificationRecipients $AdditionalRecipients -ExecuteChange $ExecuteChange
