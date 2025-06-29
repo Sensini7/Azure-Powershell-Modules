@@ -1,4 +1,4 @@
-name: "Entra: Set PIM Settings"
+name: "Entra: Set PIM Settings fed cred"
 
 on:
   workflow_dispatch:
