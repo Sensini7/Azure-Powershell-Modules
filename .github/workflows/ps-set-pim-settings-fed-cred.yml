@@ -82,7 +82,7 @@ jobs:
           # Connect to Graph (handles OIDC or Client Secret based on input)
           Connect-EciGraph -UseOIDC:($useOidc)
 
-          Import-Module .\EZD.ECI.PIMSettings\EZD.ECI.PIMSettings\EZD.ECI.PIMSettings.psd1 -Force
+          Import-Module .\EZD.ECI.PIM-Settings\EZD.ECI.PIM-Settings\EZD.ECI.PIMSettings.psd1 -Force
 
           $ExecuteChange = [System.Convert]::ToBoolean($env:ExecuteChange)
           $ApprovalAndDefaultRecipientSettings = [System.Convert]::ToBoolean($env:APPROVAL_AND_DEFAULTRECIPIENT_SETTINGS)
