@@ -15,10 +15,6 @@ foreach ($File in $AllFunctions) {
     . $File.FullName
 }
 
-if (-Not (Get-MgContext)) {
-    throw "Please run Connect-MgGraph first"
-}
-
 # Get the names of all the functions that were just sourced
 $ExportedFunctions = Get-Command -CommandType Function | 
                      Where-Object { $_.ScriptBlock.File -in $AllFunctions.FullName } | 
