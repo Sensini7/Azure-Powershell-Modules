@@ -97,5 +97,5 @@ RUN mkdir -p /actions-runner \
  && rm /actions-runner/actions-runner.tar.gz
 
 # 7) Entrypoint: run the runner
-WORKDIR /actions-runner
+WORKDIR /home/runner
 ENTRYPOINT ["./run.sh"]
