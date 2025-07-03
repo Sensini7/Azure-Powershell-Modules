@@ -25,6 +25,7 @@ on:
 permissions:
   id-token: write
   contents: read
+  packages: read
   pull-requests: write
 
 env:
@@ -41,6 +42,15 @@ jobs:
     environment: ${{ inputs.environment || vars.MANAGEMENT_TENANT_NAME }}
     name: "PIM Settings Configuration"
     runs-on: arc-runner-set
+
+    # <— add this block to use your GHCR image for *all* steps
+    container:
+      image: ghcr.io/sensini7/arc-runner-image:latest
+      # give it permission to pull from your registry
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      
     steps:
       - name: Checkout PIMSettings module
         uses: actions/checkout@v4
