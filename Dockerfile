@@ -43,7 +43,11 @@
 
 # # Entrypoint already set to pwsh
 
-# 0) Base image with Azure PowerShell on Mariner 2
+
+
+# ────────────────────────────────────────────────────────────────────────────────
+# 0) Base: Azure PowerShell on Mariner 2
+# ────────────────────────────────────────────────────────────────────────────────
 FROM mcr.microsoft.com/azure-powershell:mariner-2 AS base
 
 # 1) Core OS tools
@@ -56,14 +60,14 @@ RUN tdnf install -y \
       jq \
     && tdnf clean all
 
-# 2) Terraform – download & unzip
+# 2) Terraform
 ARG TERRAFORM_VERSION=1.4.6
 RUN curl -fsSL "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" \
      -o /tmp/terraform.zip \
  && unzip /tmp/terraform.zip -d /usr/local/bin \
  && rm /tmp/terraform.zip
 
-# 3) Python & Azure CLI
+# 3) Python & Azure CLI & Checkov
 RUN tdnf install -y python3 python3-pip \
  && pip3 install azure-cli checkov \
  && tdnf clean all
@@ -80,22 +84,18 @@ RUN curl -fsSL "https://github.com/terraform-linters/tflint/releases/download/v$
  && unzip /tmp/tflint.zip -d /usr/local/bin \
  && rm /tmp/tflint.zip
 
-# --- now pull in the Actions Runner bits ---
-FROM ghcr.io/actions/actions-runner:latest AS runner
+# ────────────────────────────────────────────────────────────────────────────────
+# 6) Install GitHub Actions Runner
+# ────────────────────────────────────────────────────────────────────────────────
+ARG RUNNER_VERSION=2.325.0
+RUN mkdir -p /actions-runner \
+ && cd /actions-runner \
+ && curl -fsSL \
+    "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" \
+    -o /actions-runner/actions-runner.tar.gz \
+ && tar -xzf /actions-runner/actions-runner.tar.gz -C /actions-runner \
+ && rm /actions-runner/actions-runner.tar.gz
 
-# 6) Final image: merge Azure tooling + runner
-FROM base
-
-# copy the runner files from the official image
-# if you need docker inside runner
-COPY --from=runner /usr/bin/docker /usr/bin/docker        
-COPY --from=runner /home/runner/actions-runner /home/runner/actions-runner
-
-# ensure the run.sh entrypoint is executable
-RUN chmod +x /home/runner/actions-runner/run.sh
-
-# expose workdir
-WORKDIR /home/runner/actions-runner
-
-# default entrypoint launches the runner
+# 7) Entrypoint: run the runner
+WORKDIR /actions-runner
 ENTRYPOINT ["./run.sh"]
