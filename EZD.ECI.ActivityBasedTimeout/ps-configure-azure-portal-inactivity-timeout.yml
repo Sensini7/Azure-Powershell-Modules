@@ -1,0 +1,103 @@
+name: "Entra: Configure Azure Portal Inactivity Timeout" 
+
+on:
+  ## checkov:skip=CKV_GHA_7:Workflow_dispatch should not take any inputs.
+  ## This suppression will be removed once branch-driven Workflows have been completed
+  workflow_dispatch:
+    inputs:
+      environment:
+        required: true
+        type: choice
+        description: Environment to deploy to
+        options:
+          - sumvita-gov
+          - sumvita
+          - kalvico
+      execute:
+        required: true
+        type: boolean
+        description: Execute change
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  ARM_USE_OIDC: true
+  ARM_USE_AZUREAD: true
+  ARM_ENVIRONMENT: ${{ vars.TF_BACKEND_CONFIG_ENVIRONMENT }}
+  ARM_SUBSCRIPTION_ID: ${{ vars.TFSTATE_AZURE_SUBSCRIPTION_ID }}
+
+jobs: 
+
+  run-powershell-script:
+    environment: ${{ inputs.environment }}
+    name: "Inactivity Timeout Policy"
+    runs-on: ubuntu-latest
+    outputs: 
+      driftResult: ${{ steps.ps-drift.outputs.drift_detection_result }}
+
+    steps:
+      - name: Validate azure_portal_session_idle_timeout input
+        shell: pwsh
+        run: |
+          $WebSessionIdleTimeout = "${{ vars.AZURE_WEB_SESSION_IDLE_TIMEOUT }}"
+          if ($WebSessionIdleTimeout -match '^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$') {
+            Write-Output "WebSessionIdleTimeout is valid"
+          } else {
+            Write-Error "WebSessionIdleTimeout is invalid. Please provide a valid duration in the format HH:MM:SS"
+            exit 1
+          }
+
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout feature module
+        uses: actions/checkout@v4
+        with:
+          repository: 'EasyDynamics/EntraID-800-53-Terraform-Modules'
+          ref: '0.0.100'
+          path: 'EZD.ECI.ActivityBasedTimeout'
+          sparse-checkout: 'powershell-modules/EZD.ECI.ActivityBasedTimeout'
+          ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
+
+      - name: Checkout common module
+        uses: actions/checkout@v4
+        with:
+          repository: 'EasyDynamics/EntraID-800-53-Terraform-Modules'
+          ref: '0.0.95'
+          path: 'EZD.ECI.Common'
+          sparse-checkout: 'powershell-modules/EZD.ECI.Common'
+          ssh-key: ${{ secrets.MODULES_REPO_SSH_PRIVATE_KEY }}
+          
+      - name: Configure Azure Inactivity Timeout Settings
+        shell: pwsh
+        run: |
+          if ("${{ vars.IS_AZURE_GOV }}" -eq "true") {
+            az cloud set --name AzureUSGovernment
+            $GRAPH_ENVIRONMENT = 'USGov'
+          } else {
+            $GRAPH_ENVIRONMENT = 'Global'
+          }
+          az login --service-principal -u ${{ vars.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ vars.AZURE_TENANT_ID }}
+          $AccessToken = (az account get-access-token --resource-type ms-graph | ConvertFrom-Json).accessToken
+          
+          Write-Output "Connecting to MgGraph..."
+          $SecureAccessToken = ConvertTo-SecureString -String $AccessToken -AsPlainText -Force
+          Connect-MgGraph -AccessToken $SecureAccessToken -NoWelcome -Environment $GRAPH_ENVIRONMENT
+
+          # Capture tenant context in the logs
+          $CurrentTenant = Get-MgOrganization
+          $CurrentTenantName = $CurrentTenant.DisplayName
+          Write-Output "You are in the $CurrentTenantName tenant"
+
+          # Install and import modules
+          Import-Module .\EZD.ECI.Common\powershell-modules\EZD.ECI.Common\EZD.ECI.Common.psm1 -Force
+          Import-Module .\EZD.ECI.ActivityBasedTimeout\powershell-modules\EZD.ECI.ActivityBasedTimeout\EZD.ECI.ActivityBasedTimeout.psm1 -Force
+
+          # Define variables
+          $WebSessionidleTimeout = "${{ vars.AZURE_WEB_SESSION_IDLE_TIMEOUT }}"
+          $ExecuteChange = [System.Convert]::ToBoolean("${{ github.event.inputs.execute }}")
+
+          # Configure Azure inactivity timeout settings
+          Set-ActivityBasedTimeoutPolicy -WebSessionidleTimeout "${{ vars.AZURE_WEB_SESSION_IDLE_TIMEOUT }}" -ExecuteChange:$ExecuteChange
